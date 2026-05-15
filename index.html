@@ -443,7 +443,12 @@ function sendSMS() {
   // 1) 즉시 자동 저장
   autoSaveOrder();
   // 2) 문자 앱 실행
-  window.location.href=`sms:${recipient}?body=${encodeURIComponent(buildSMSBody())}`;
+  const a = document.createElement('a');
+  a.href = `sms:${recipient}?body=${encodeURIComponent(buildSMSBody())}`;
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 }
 
 // ── 자동 저장 (시간 기준 식사 구분) ──
