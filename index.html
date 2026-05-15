@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="식사주문">
+<meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="https://1.diskpark.me/order/manifest.json">
+<title>식사 주문</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { font-family: 'Noto Sans KR', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+  body { background: #0f172a; min-height: 100vh; overflow-x: hidden; }
+  .bg-mesh {
+    background:
+      radial-gradient(ellipse at 15% 15%, rgba(99,102,241,0.18) 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 80%, rgba(16,185,129,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 65% 5%,  rgba(236,72,153,0.08) 0%, transparent 40%),
+      #0f172a;
+  }
+  .glass {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .btn-primary { background: linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 4px 20px rgba(99,102,241,0.4); transition:all .2s; }
+  .btn-primary:active { transform:scale(.97); }
+  .btn-green   { background: linear-gradient(135deg,#10b981,#059669); box-shadow:0 4px 20px rgba(16,185,129,0.4); transition:all .2s; }
+  .btn-green:active   { transform:scale(.97); }
+  .btn-blue    { background: linear-gradient(135deg,#3b82f6,#2563eb); box-shadow:0 4px 20px rgba(59,130,246,0.4);  transition:all .2s; }
+  .btn-blue:active    { transform:scale(.97); }
+  .btn-gray    { background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); transition:all .2s; }
+  .btn-gray:active    { transform:scale(.97); }
+
+  /* 멤버 체크 버튼 */
+  .member-btn {
+    background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
+    border-radius:16px; padding:11px 14px; cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; justify-content:space-between; gap:6px;
+  }
+  .member-btn:active { transform:scale(.96); }
+  .member-btn.checked { background:rgba(99,102,241,0.28); border-color:rgba(99,102,241,0.7); box-shadow:0 0 12px rgba(99,102,241,0.2); }
+  .check-circle {
+    width:20px; height:20px; border-radius:50%;
+    border:2px solid rgba(255,255,255,0.2);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; transition:all .2s;
+  }
+  .member-btn.checked .check-circle { background:#6366f1; border-color:#6366f1; }
+  .check-icon { display:none; color:white; font-size:11px; font-weight:700; }
+  .member-btn.checked .check-icon { display:block; }
+
+  /* 인원 카드 */
+  .person-card {
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+    border-radius:20px; cursor:pointer; transition:all .25s;
+    position:relative; overflow:hidden;
+    animation:fadeIn .35s ease forwards; opacity:0;
+  }
+  .person-card:active { transform:scale(.97); }
+  .person-card.has-menu { border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.07); }
+  .avatar {
+    width:48px; height:48px; background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    border-radius:14px; display:flex; align-items:center; justify-content:center;
+    font-size:18px; font-weight:700; color:white; flex-shrink:0;
+  }
+
+  /* 메뉴 팝업 */
+  .overlay { background:rgba(0,0,0,0.75); }
+  .popup {
+    background:rgba(13,20,40,0.98); border:1px solid rgba(255,255,255,0.14);
+    border-radius:28px 28px 0 0;
+    animation:slideUp .3s cubic-bezier(0.34,1.4,0.64,1);
+    max-height:85vh; display:flex; flex-direction:column;
+  }
+  .menu-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; padding:0 0 4px; }
+  .menu-scroll::-webkit-scrollbar { width:3px; }
+  .menu-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:2px; }
+  .menu-item {
+    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px; padding:14px 16px; margin-bottom:8px;
+    display:flex; justify-content:space-between; align-items:center;
+    cursor:pointer; transition:background .15s, border-color .15s;
+    touch-action:manipulation; user-select:none; -webkit-user-select:none;
+  }
+  .menu-item.selected { background:rgba(99,102,241,0.28); border-color:rgba(99,102,241,0.7); }
+
+  /* 히스토리 카드 */
+  .hist-card {
+    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
+    border-radius:18px; padding:14px 16px; margin-bottom:10px;
+    cursor:pointer; transition:all .2s;
+  }
+  .hist-card:active { transform:scale(.98); background:rgba(255,255,255,0.08); }
+  .hist-tag {
+    display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:600;
+  }
+  .hist-tag.lunch   { background:rgba(251,191,36,0.2);  color:#fbbf24; }
+  .hist-tag.dinner  { background:rgba(99,102,241,0.2);  color:#a5b4fc; }
+  .hist-tag.other   { background:rgba(156,163,175,0.2); color:#9ca3af; }
+
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(251,191,36,0.4), 0 0 20px rgba(251,191,36,0.2); }
+    50% { box-shadow: 0 0 16px rgba(251,191,36,0.8), 0 0 40px rgba(251,191,36,0.4); }
+  }
+  #addHomeBtn { animation: glowPulse 2s ease-in-out infinite; }
+
+  @keyframes slideUp { from{transform:translateY(50px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes fadeIn  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation:fadeIn .35s ease forwards; }
+
+  .summary-row {
+    display:grid; grid-template-columns:68px 1fr 76px;
+    gap:6px; align-items:center; padding:11px 0;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .tab-btn { padding:8px 16px; border-radius:12px; font-size:13px; font-weight:600; color:rgba(255,255,255,0.4); transition:all .2s; cursor:pointer; }
+  .tab-btn.active { background:rgba(99,102,241,0.3); color:#a5b4fc; }
+</style>
+</head>
+<body class="bg-mesh">
+
+<div id="app" class="max-w-md mx-auto px-4 pt-6 pb-28">
+
+  <!-- ── STEP 1: 근무자 선택 ── -->
+  <div id="step1" class="fade-in">
+    <div class="text-center mb-5 pt-2">
+      <div class="text-4xl mb-2">🍱</div>
+      <h1 class="text-2xl font-bold text-white mb-1">억순이네 식사 주문</h1>
+      <p class="text-white/40 text-sm">오늘 근무자를 모두 선택하세요</p>
+    </div>
+
+    <!-- 탭: 새주문 / 최근주문 -->
+    <div class="flex gap-2 mb-4">
+      <div class="tab-btn active" id="tabNew" onclick="switchTab('new')">새 주문</div>
+      <div class="tab-btn" id="tabHist" onclick="switchTab('hist')">최근 주문</div>
+    </div>
+
+    <!-- 새 주문 패널 -->
+    <div id="panelNew">
+      <div class="glass rounded-2xl px-4 py-3 mb-4 flex items-center justify-between">
+        <span class="text-white/50 text-sm">선택된 인원</span>
+        <span id="selectedCount" class="text-indigo-400 font-bold text-lg">0명</span>
+      </div>
+      <div id="memberGrid" class="grid grid-cols-3 gap-2 mb-5"></div>
+      <button onclick="confirmWorkers()" class="btn-primary w-full py-4 rounded-2xl text-white font-bold text-base">
+        메뉴 선택하기 →
+      </button>
+    </div>
+
+    <!-- 최근 주문 패널 -->
+    <div id="panelHist" class="hidden">
+      <div class="flex justify-end mb-3">
+        <button onclick="clearHistory()" class="text-white/30 text-xs border border-white/10 rounded-xl px-3 py-1.5 transition-all" style="transition:all .2s">🗑 전체 초기화</button>
+      </div>
+      <div id="histList"></div>
+      <p id="histEmpty" class="text-white/30 text-sm text-center py-10 hidden">저장된 주문 내역이 없습니다.</p>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: 인원별 메뉴 카드 ── -->
+  <div id="step2" class="hidden">
+    <div class="flex items-center gap-3 mb-5">
+      <button onclick="goBack(2)" class="glass w-9 h-9 rounded-xl flex items-center justify-center text-white/60 text-xl">‹</button>
+      <div>
+        <h2 class="text-white font-bold text-lg">메뉴 선택</h2>
+        <p id="step2Sub" class="text-white/40 text-xs"></p>
+      </div>
+    </div>
+    <div id="personCards" class="grid grid-cols-2 gap-3 mb-5"></div>
+    <button onclick="goToSummary()" class="btn-primary w-full py-4 rounded-2xl text-white font-bold text-base">
+      주문 확인 →
+    </button>
+  </div>
+
+  <!-- ── STEP 3: 최종 확인 ── -->
+  <div id="step3" class="hidden">
+    <div class="flex items-center gap-3 mb-5">
+      <button onclick="goBack(3)" class="glass w-9 h-9 rounded-xl flex items-center justify-center text-white/60 text-xl">‹</button>
+      <h2 class="text-white font-bold text-lg">주문 확인</h2>
+    </div>
+
+    <div class="glass rounded-2xl p-4 mb-3">
+      <div id="summaryList"></div>
+      <div class="summary-row border-b-0 mt-1">
+        <span class="text-white/40 text-xs">소계</span><span></span>
+        <span id="subtotalAmt" class="text-white/70 text-sm font-bold text-right"></span>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl px-4 py-3 mb-3 flex items-center justify-between">
+      <div><div class="text-white/60 text-sm">배달비</div><div class="text-white/25 text-xs mt-0.5">고정</div></div>
+      <span class="text-white font-bold">4,500원</span>
+    </div>
+
+    <div class="glass rounded-2xl px-4 py-4 mb-5 flex items-center justify-between">
+      <span class="text-white font-bold">총 합계</span>
+      <span id="totalAmt" class="text-2xl font-bold text-emerald-400"></span>
+    </div>
+
+    <button onclick="sendSMS()" class="btn-green w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 mb-3">
+      <span>💬</span> 문자 보내기
+    </button>
+    <button id="callBtn" onclick="callRestaurant()" class="btn-blue w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2">
+      <span>📞</span> <span id="callBtnLabel">억순이네 전화</span>
+    </button>
+
+    <!-- 안내 문구 + 홈 추가 버튼 -->
+    <div id="guideArea" class="mt-4 rounded-2xl px-4 py-4 hidden"
+      style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.4);">
+      <p id="guideText" class="text-center leading-relaxed mb-3"
+        style="color:#fde68a;font-size:14px;font-weight:500;"></p>
+      <button id="addHomeBtn" class="hidden w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2"
+        style="background:rgba(251,191,36,0.3);border:2px solid rgba(251,191,36,0.8);color:#fbbf24;font-size:15px;"
+        onclick="addToHomeScreen()">
+        📲 홈 화면에 바로가기 추가
+      </button>
+    </div>
+  </div>
+
+  <!-- ── STEP 4: 히스토리 상세 ── -->
+  <div id="step4" class="hidden">
+    <div class="flex items-center gap-3 mb-5">
+      <button onclick="goBack(4)" class="glass w-9 h-9 rounded-xl flex items-center justify-center text-white/60 text-xl">‹</button>
+      <div>
+        <h2 class="text-white font-bold text-lg">주문 내역</h2>
+        <p id="step4Sub" class="text-white/40 text-xs"></p>
+      </div>
+    </div>
+    <div id="step4Body"></div>
+    <button onclick="resendSMS()" class="btn-green w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 mt-4 mb-3">
+      <span>💬</span> 다시 문자 보내기
+    </button>
+    <button onclick="callRestaurant()" class="btn-blue w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2">
+      <span>📞</span> <span id="callBtnLabel2">억순이네 전화</span>
+    </button>
+  </div>
+</div>
+
+<!-- 메뉴 선택 팝업 -->
+<div id="menuPopup" class="hidden fixed inset-0 overlay z-50 flex items-end justify-center">
+  <div class="popup w-full max-w-md mx-auto p-5">
+    <div class="flex-shrink-0">
+      <div class="w-10 h-1 bg-white/20 rounded mx-auto mb-4"></div>
+      <h3 id="menuPopupName" class="text-white font-bold text-lg mb-4"></h3>
+    </div>
+    <div id="menuList" class="menu-scroll"></div>
+    <div class="flex gap-3 flex-shrink-0 pt-3">
+      <button onclick="closeMenuPopup()" class="glass flex-1 py-3 rounded-2xl text-white/60 font-medium">취소</button>
+      <button onclick="confirmMenu()" class="btn-primary flex-1 py-3 rounded-2xl text-white font-bold">완료</button>
+    </div>
+  </div>
+</div>
+
+<!-- 저장 완료 토스트 -->
+<div id="toast" class="hidden fixed bottom-8 left-1/2 z-50 px-5 py-3 rounded-2xl text-white text-sm font-medium"
+  style="transform:translateX(-50%);background:rgba(16,185,129,0.9);backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,0.3)">
+  ✅ 주문이 저장되었습니다
+</div>
+
+<script>
+const DELIVERY_FEE = 4500;
+const HISTORY_KEY  = 'meal_order_history';
+const MAX_HISTORY  = 30; // 최대 30건 보관
+
+let appData = { settings:{}, members:[], menu:[] };
+let selectedWorkers = [];
+let orders = {};
+let currentMenuTarget = null;
+let currentMenuSelection = [];
+let viewingHistory = null; // 히스토리 상세 조회 중인 항목
+
+// ── 데이터 로드 ──
+async function loadData() {
+  try {
+    const r = await fetch('./data.json');
+    if (!r.ok) throw new Error();
+    const raw = await r.json();
+    // restaurant_info 구조도 지원
+    if (raw.restaurant_info) {
+      raw.settings = {
+        sms_recipient:   raw.restaurant_info.mobile?.replace(/-/g,'') || '',
+        restaurant_phone:raw.restaurant_info.tel?.replace(/-/g,'')    || '',
+        restaurant_name: raw.restaurant_info.name || '식당'
+      };
+    }
+    appData = raw;
+  } catch {
+    appData = {
+      settings:{ sms_recipient:'01020098442', restaurant_phone:'0614642008', restaurant_name:'억순이네' },
+      members:[
+        {id:1,name:"이원훈"},{id:2,name:"장형규"},{id:3,name:"조현철"},{id:4,name:"박진호"},{id:5,name:"홍인석"},
+        {id:6,name:"하정남"},{id:7,name:"황정호"},{id:8,name:"김현진"},{id:9,name:"전창범"},{id:10,name:"오규종"},
+        {id:11,name:"김경훈"},{id:12,name:"정철수"},{id:13,name:"황인태"},{id:14,name:"안찬범"},{id:15,name:"김상원"},
+        {id:16,name:"이동현"},{id:17,name:"김태민"},{id:18,name:"김성환"},{id:19,name:"김세영"},{id:20,name:"홍원진"},
+        {id:21,name:"이재일"},{id:22,name:"이준영"},{id:23,name:"김태호"},{id:24,name:"김택성"},{id:25,name:"채관기"},
+        {id:26,name:"김재원"},{id:27,name:"장병숙"},{id:28,name:"윤광덕"},{id:29,name:"박성기"}
+      ],
+      menu:[
+        {id:1,name:"순대국밥",price:9000,category:"식사"},{id:2,name:"섞어국밥",price:9000,category:"식사"},
+        {id:3,name:"머리국밥",price:9000,category:"식사"},{id:4,name:"뼈해장국",price:9000,category:"식사"},
+        {id:5,name:"사골우거지",price:9000,category:"식사"},{id:6,name:"소머리국밥",price:9000,category:"식사"},
+        {id:7,name:"소내장탕",price:9000,category:"식사"},{id:8,name:"김치찌개",price:9000,category:"식사"},
+        {id:9,name:"순두부찌개",price:9000,category:"식사"},{id:10,name:"된장찌개",price:9000,category:"식사"},
+        {id:11,name:"계란말이",price:10000,category:"사이드"},{id:12,name:"순대",price:7000,category:"사이드"},
+        {id:13,name:"물냉면",price:7000,category:"사이드"},{id:14,name:"비빔냉면",price:8000,category:"사이드"},
+        {id:15,name:"라면",price:5000,category:"사이드"},{id:16,name:"계란찜",price:3000,category:"사이드"},
+        {id:17,name:"주먹밥",price:3000,category:"사이드"},{id:18,name:"볶음밥",price:2000,category:"사이드"},
+        {id:19,name:"공기밥",price:1000,category:"사이드"}
+      ]
+    };
+  }
+  // 메뉴에 id 없으면 자동 부여
+  appData.menu.forEach((m,i) => { if (!m.id) m.id = i+1; });
+
+  const s = appData.settings || {};
+  const rname = s.restaurant_name || '식당';
+  document.querySelectorAll('#callBtnLabel,#callBtnLabel2').forEach(el => el.textContent = `${rname} 전화`);
+  document.querySelector('h1') && (document.querySelector('h1').textContent = `${rname} 식사 주문`);
+
+  renderMemberGrid();
+}
+
+// ── 탭 전환 ──
+function switchTab(tab) {
+  document.getElementById('tabNew').classList.toggle('active', tab==='new');
+  document.getElementById('tabHist').classList.toggle('active', tab==='hist');
+  document.getElementById('panelNew').classList.toggle('hidden', tab!=='new');
+  document.getElementById('panelHist').classList.toggle('hidden', tab!=='hist');
+  if (tab==='hist') renderHistory();
+}
+
+// ── Step 1: 멤버 그리드 (이름만, 번호 없음) ──
+function renderMemberGrid() {
+  document.getElementById('memberGrid').innerHTML = appData.members.map(m => `
+    <button id="mb_${m.id}" class="member-btn" onclick="toggleMember(${m.id}, this)">
+      <span class="text-white font-medium text-sm truncate">${m.name}</span>
+      <div class="check-circle"><span class="check-icon">✓</span></div>
+    </button>
+  `).join('');
+}
+
+function toggleMember(id, el) {
+  const idx = selectedWorkers.indexOf(id);
+  if (idx > -1) { selectedWorkers.splice(idx,1); el.classList.remove('checked'); }
+  else { selectedWorkers.push(id); el.classList.add('checked'); }
+  document.getElementById('selectedCount').textContent = `${selectedWorkers.length}명`;
+}
+
+function confirmWorkers() {
+  if (!selectedWorkers.length) { alert('근무자를 1명 이상 선택해주세요.'); return; }
+  orders = {};
+  selectedWorkers.forEach(id => orders[id] = []);
+  renderPersonCards();
+  show('step1',false); show('step2',true);
+}
+
+// ── Step 2 ──
+function renderPersonCards() {
+  const workers = sortedWorkers();
+  document.getElementById('step2Sub').textContent = `${workers.length}명 선택됨`;
+  document.getElementById('personCards').innerHTML = workers.map((m,i) => `
+    <div id="card_${m.id}" class="person-card p-4" onclick="openMenuPopup(${m.id})" style="animation-delay:${i*0.05}s">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="avatar">${m.name[0]}</div>
+        <div class="min-w-0">
+          <div class="text-white font-bold text-sm truncate">${m.name}</div>
+        </div>
+      </div>
+      <div id="cardMenu_${m.id}" class="text-white/35 text-xs">탭하여 메뉴 선택</div>
+      <div id="cardPrice_${m.id}" class="text-emerald-400 font-bold text-sm mt-1 hidden"></div>
+    </div>
+  `).join('');
+}
+
+// ── 메뉴 팝업 ──
+function openMenuPopup(memberId) {
+  currentMenuTarget = memberId;
+  currentMenuSelection = [...(orders[memberId]||[])];
+  const m = appData.members.find(x=>x.id===memberId);
+  document.getElementById('menuPopupName').textContent = `${m.name} 메뉴 선택`;
+  const cats = [...new Set(appData.menu.map(x=>x.category))];
+  const listEl = document.getElementById('menuList');
+  listEl.innerHTML = cats.map(cat=>`
+    <div class="text-white/30 text-xs font-semibold tracking-wider mb-2 mt-1 px-1">${cat}</div>
+    ${appData.menu.filter(x=>x.category===cat).map(item=>{
+      const sel = currentMenuSelection.some(s=>s.id===item.id);
+      return `<div class="menu-item${sel?' selected':''}" data-menu-id="${item.id}">
+        <span class="text-white font-medium text-sm">${item.name}</span>
+        <span class="text-white/45 text-sm">${item.price.toLocaleString()}원</span>
+      </div>`;
+    }).join('')}
+  `).join('');
+  listEl.onclick = e=>{
+    const el = e.target.closest('.menu-item'); if(!el) return;
+    const menuId = parseInt(el.dataset.menuId);
+    const menuData = appData.menu.find(x=>x.id===menuId);
+    const idx = currentMenuSelection.findIndex(x=>x.id===menuId);
+    if(idx>-1){ currentMenuSelection.splice(idx,1); el.classList.remove('selected'); }
+    else { currentMenuSelection.push(menuData); el.classList.add('selected'); }
+  };
+  document.getElementById('menuPopup').classList.remove('hidden');
+}
+function closeMenuPopup() { document.getElementById('menuPopup').classList.add('hidden'); }
+function confirmMenu() { orders[currentMenuTarget]=[...currentMenuSelection]; updateCard(currentMenuTarget); closeMenuPopup(); }
+
+function updateCard(memberId) {
+  const items = orders[memberId];
+  const card=document.getElementById(`card_${memberId}`);
+  const menuEl=document.getElementById(`cardMenu_${memberId}`);
+  const priceEl=document.getElementById(`cardPrice_${memberId}`);
+  if(!items.length){
+    menuEl.textContent='탭하여 메뉴 선택'; menuEl.className='text-white/35 text-xs';
+    priceEl.classList.add('hidden'); card.classList.remove('has-menu');
+  } else {
+    menuEl.textContent=items.map(x=>x.name).join(' · ');
+    menuEl.className='text-white/65 text-xs leading-relaxed';
+    priceEl.textContent=items.reduce((s,x)=>s+x.price,0).toLocaleString()+'원';
+    priceEl.classList.remove('hidden'); card.classList.add('has-menu');
+  }
+}
+
+// ── Step 3 ──
+function goToSummary() {
+  const workers = sortedWorkers();
+  let subtotal=0;
+  document.getElementById('summaryList').innerHTML = workers.map(m=>{
+    const items=orders[m.id]||[]; const amt=items.reduce((s,x)=>s+x.price,0); subtotal+=amt;
+    return `<div class="summary-row">
+      <div class="text-white font-medium text-sm">${m.name}</div>
+      <div class="text-white/45 text-xs leading-tight">${items.length?items.map(x=>x.name).join(', '):'—'}</div>
+      <div class="text-white/75 text-sm text-right">${amt?amt.toLocaleString()+'원':'—'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('subtotalAmt').textContent = subtotal.toLocaleString()+'원';
+  document.getElementById('totalAmt').textContent = (subtotal+DELIVERY_FEE).toLocaleString()+'원';
+  show('step2',false); show('step3',true);
+  showGuide();
+}
+
+// ── SMS ──
+function buildSMSBody() {
+  const menuCount={};
+  sortedWorkers().forEach(m=>(orders[m.id]||[]).forEach(item=>{
+    menuCount[item.name]=(menuCount[item.name]||0)+1;
+  }));
+  const subtotal=sortedWorkers().reduce((s,m)=>s+(orders[m.id]||[]).reduce((a,x)=>a+x.price,0),0);
+  let body='안녕하세요 대양입니다\n\n';
+  Object.entries(menuCount).forEach(([name,cnt])=>{ body+=`${name} ${cnt}개\n`; });
+  const total=Object.values(menuCount).reduce((a,b)=>a+b,0);
+  body+=`\n총 ${total}개`;
+  body+=`\n금액: ${subtotal.toLocaleString()}원 + 배달비 ${DELIVERY_FEE.toLocaleString()}원`;
+  body+=`\n합계: ${(subtotal+DELIVERY_FEE).toLocaleString()}원`;
+  return body;
+}
+
+function sendSMS() {
+  const recipient=(appData.settings||{}).sms_recipient||'';
+  // 1) 즉시 자동 저장
+  autoSaveOrder();
+  // 2) 문자 앱 실행
+  const a = document.createElement('a');
+  a.href = `sms:${recipient}?body=${encodeURIComponent(buildSMSBody())}`;
+  a.target = '_blank';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// ── 자동 저장 (시간 기준 식사 구분) ──
+function autoSaveOrder() {
+  const now = new Date();
+  const hour = now.getHours();
+  let mealType = '기타';
+  if (hour>=11 && hour<14) mealType='점심';
+  else if (hour>=17 && hour<21) mealType='저녁';
+
+  const workers=sortedWorkers();
+  const subtotal=workers.reduce((s,m)=>s+(orders[m.id]||[]).reduce((a,x)=>a+x.price,0),0);
+  const menuCount={};
+  workers.forEach(m=>(orders[m.id]||[]).forEach(item=>{
+    menuCount[item.name]=(menuCount[item.name]||0)+1;
+  }));
+
+  const record = {
+    id: now.getTime(),
+    date: now.toLocaleDateString('ko-KR',{year:'numeric',month:'numeric',day:'numeric',weekday:'short'}),
+    time: now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),
+    mealType,
+    workers: workers.map(m=>m.name),
+    orders: workers.reduce((obj,m)=>{ obj[m.name]=(orders[m.id]||[]).map(x=>x.name); return obj; },{}),
+    menuCount,
+    subtotal,
+    total: subtotal+DELIVERY_FEE,
+    smsBody: buildSMSBody()
+  };
+
+  const hist=getHistory();
+  hist.unshift(record);
+  if(hist.length>MAX_HISTORY) hist.pop();
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+
+  // 토스트 표시
+  const toast=document.getElementById('toast');
+  toast.classList.remove('hidden');
+  setTimeout(()=>toast.classList.add('hidden'), 2500);
+}
+
+// ── 히스토리 초기화 ──
+function clearHistory() {
+  if (!confirm('주문 내역을 모두 삭제할까요?')) return;
+  localStorage.removeItem(HISTORY_KEY);
+  renderHistory();
+}
+
+// ── 히스토리 ──
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); } catch{ return []; }
+}
+
+function renderHistory() {
+  const hist=getHistory();
+  const listEl=document.getElementById('histList');
+  const emptyEl=document.getElementById('histEmpty');
+  if(!hist.length){ listEl.innerHTML=''; emptyEl.classList.remove('hidden'); return; }
+  emptyEl.classList.add('hidden');
+
+  // 7일치만 표시
+  const cutoff=Date.now()-7*24*60*60*1000;
+  const recent=hist.filter(h=>h.id>cutoff);
+
+  if(!recent.length){ listEl.innerHTML='<p class="text-white/30 text-sm text-center py-10">최근 7일 내 주문이 없습니다.</p>'; return; }
+
+  listEl.innerHTML=recent.map(h=>{
+    const tagCls=h.mealType==='점심'?'lunch':h.mealType==='저녁'?'dinner':'other';
+    const icon=h.mealType==='점심'?'☀️':h.mealType==='저녁'?'🌙':'🍽️';
+    const menuSummary=Object.entries(h.menuCount).map(([n,c])=>`${n}${c>1?' ×'+c:''}`).join(', ');
+    return `<div class="hist-card" onclick="viewHistory(${h.id})">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="hist-tag ${tagCls}">${icon} ${h.mealType}</span>
+          <span class="text-white font-semibold text-sm">${h.date}</span>
+          <span class="text-white/40 text-xs">${h.time}</span>
+        </div>
+        <span class="text-emerald-400 font-bold text-sm flex-shrink-0">${h.total.toLocaleString()}원</span>
+      </div>
+      <div class="text-white/40 text-xs mb-1">${h.workers.join(' · ')}</div>
+      <div class="text-white/25 text-xs truncate">${menuSummary}</div>
+    </div>`;
+  }).join('');
+}
+
+function viewHistory(id) {
+  const hist=getHistory();
+  const h=hist.find(x=>x.id===id);
+  if(!h) return;
+  viewingHistory=h;
+
+  document.getElementById('step4Sub').textContent=`${h.date} ${h.time} · ${h.mealType}`;
+
+  // 상세 내용 구성
+  let html=`<div class="glass rounded-2xl p-4 mb-3">`;
+  h.workers.forEach(name=>{
+    const items=(h.orders[name]||[]);
+    html+=`<div class="summary-row">
+      <div class="text-white font-medium text-sm">${name}</div>
+      <div class="text-white/45 text-xs">${items.length?items.join(', '):'—'}</div>
+      <div class="text-white/60 text-sm text-right"></div>
+    </div>`;
+  });
+  html+=`<div class="summary-row border-b-0 mt-1">
+    <span class="text-white/40 text-xs">소계</span><span></span>
+    <span class="text-white/70 text-sm font-bold text-right">${h.subtotal.toLocaleString()}원</span>
+  </div></div>`;
+
+  // 메뉴 집계
+  html+=`<div class="glass rounded-2xl p-4 mb-3">
+    <div class="text-white/40 text-xs font-semibold mb-3">메뉴 집계</div>`;
+  Object.entries(h.menuCount).forEach(([name,cnt])=>{
+    html+=`<div class="flex justify-between py-2 border-b border-white/5">
+      <span class="text-white text-sm">${name}</span>
+      <span class="text-white/50 text-sm">${cnt}개</span>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  html+=`<div class="glass rounded-2xl px-4 py-3 mb-3 flex items-center justify-between">
+    <span class="text-white/60 text-sm">배달비</span>
+    <span class="text-white font-bold">4,500원</span>
+  </div>
+  <div class="glass rounded-2xl px-4 py-4 mb-3 flex items-center justify-between">
+    <span class="text-white font-bold">총 합계</span>
+    <span class="text-2xl font-bold text-emerald-400">${h.total.toLocaleString()}원</span>
+  </div>`;
+
+  document.getElementById('step4Body').innerHTML=html;
+  show('step1',false); show('step4',true);
+}
+
+function resendSMS() {
+  if(!viewingHistory) return;
+  const recipient=(appData.settings||{}).sms_recipient||'';
+  window.location.href=`sms:${recipient}?body=${encodeURIComponent(viewingHistory.smsBody)}`;
+}
+
+// ── 전화 ──
+function callRestaurant() {
+  const phone=(appData.settings||{}).restaurant_phone||'';
+  if(!phone){ alert('data.json에 restaurant_phone을 입력해주세요.'); return; }
+  window.location.href=`tel:${phone}`;
+}
+
+// ── 유틸 ──
+function sortedWorkers() {
+  return [...selectedWorkers].sort((a,b)=>a-b).map(id=>appData.members.find(m=>m.id===id));
+}
+function goBack(step) {
+  if(step===2){ show('step2',false); show('step1',true); }
+  if(step===3){ show('step3',false); show('step2',true); }
+  if(step===4){ show('step4',false); show('step1',true); switchTab('hist'); }
+}
+function show(id,visible) {
+  const el=document.getElementById(id);
+  if(visible){ el.classList.remove('hidden'); el.classList.add('fade-in'); }
+  else el.classList.add('hidden');
+}
+
+// ── 홈 화면 추가 (Android PWA) ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+function addToHomeScreen() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+  } else {
+    // 크롬 수동 안내
+    alert('크롬 브라우저 우상단 ⋮ 메뉴 → "홈 화면에 추가" 를 눌러주세요!');
+  }
+}
+
+function showGuide() {
+  const ua = navigator.userAgent;
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad/i.test(ua);
+  const isKakao = /KAKAOTALK/i.test(ua);
+  const area = document.getElementById('guideArea');
+  const text = document.getElementById('guideText');
+  const btn  = document.getElementById('addHomeBtn');
+
+  area.classList.remove('hidden');
+
+  if (isAndroid && isKakao) {
+    text.innerHTML = '⚠️ 카톡 브라우저는 문자 후 화면이 사라져요.<br>아래 버튼으로 홈 화면에 추가하면<br>앱처럼 열려서 문자·전화가 끊기지 않아요!';
+    btn.classList.remove('hidden');
+  } else if (isAndroid) {
+    text.innerHTML = '💡 홈 화면에 추가하면 앱처럼 사용 가능해요!';
+    btn.classList.remove('hidden');
+  } else if (isIOS && isKakao) {
+    text.innerHTML = '⚠️ 카톡 브라우저는 문자 후 화면이 사라져요.<br>Safari로 열기 → 하단 공유버튼 → 홈 화면에 추가<br>하시면 앱처럼 끊김 없이 사용 가능해요!';
+  } else if (isIOS) {
+    text.innerHTML = '💡 Safari 하단 공유 → 홈 화면에 추가하면<br>앱처럼 사용 가능해요!';
+  } else {
+    area.classList.add('hidden');
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
