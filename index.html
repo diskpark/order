@@ -35,23 +35,13 @@
   .btn-gray    { background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); transition:all .2s; }
   .btn-gray:active    { transform:scale(.97); }
 
-  /* 멤버 체크 버튼 */
   .member-btn {
     background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
-    border-radius:16px; padding:11px 14px; cursor:pointer; transition:all .2s;
-    display:flex; align-items:center; justify-content:space-between; gap:6px;
+    border-radius:16px; padding:11px 10px; cursor:pointer; transition:all .2s;
+    display:flex; align-items:center; justify-content:center;
   }
   .member-btn:active { transform:scale(.96); }
-  .member-btn.checked { background:rgba(99,102,241,0.28); border-color:rgba(99,102,241,0.7); box-shadow:0 0 12px rgba(99,102,241,0.2); }
-  .check-circle {
-    width:20px; height:20px; border-radius:50%;
-    border:2px solid rgba(255,255,255,0.2);
-    display:flex; align-items:center; justify-content:center;
-    flex-shrink:0; transition:all .2s;
-  }
-  .member-btn.checked .check-circle { background:#6366f1; border-color:#6366f1; }
-  .check-icon { display:none; color:white; font-size:11px; font-weight:700; }
-  .member-btn.checked .check-icon { display:block; }
+  .member-btn.checked { background:rgba(99,102,241,0.35); border-color:rgba(99,102,241,0.8); box-shadow:0 0 14px rgba(99,102,241,0.3); }
 
   /* 인원 카드 */
   .person-card {
@@ -245,14 +235,17 @@
   </div>
 </div>
 
-<!-- 메뉴 선택 팝업 -->
-<div id="menuPopup" class="hidden fixed inset-0 overlay z-50 flex items-end justify-center">
-  <div class="popup w-full max-w-md mx-auto p-5">
-    <div class="flex-shrink-0">
-      <div class="w-10 h-1 bg-white/20 rounded mx-auto mb-4"></div>
-      <h3 id="menuPopupName" class="text-white font-bold text-lg mb-4"></h3>
+<!-- 메뉴 선택 팝업 - 전체화면 -->
+<div id="menuPopup" class="hidden fixed inset-0 z-50" style="background:rgba(13,20,40,0.98);">
+  <div class="w-full h-full max-w-md mx-auto flex flex-col p-4">
+    <!-- 헤더 -->
+    <div class="flex-shrink-0 flex items-center justify-between mb-3">
+      <h3 id="menuPopupName" class="text-white font-bold text-lg"></h3>
+      <button onclick="closeMenuPopup()" class="text-white/40 text-2xl leading-none">✕</button>
     </div>
-    <div id="menuList" class="menu-scroll"></div>
+    <!-- 메뉴 그리드 (스크롤 없이 꽉 채움) -->
+    <div id="menuList" class="flex-1 overflow-y-auto"></div>
+    <!-- 버튼 -->
     <div class="flex gap-3 flex-shrink-0 pt-3">
       <button onclick="closeMenuPopup()" class="glass flex-1 py-3 rounded-2xl text-white/60 font-medium">취소</button>
       <button onclick="confirmMenu()" class="btn-primary flex-1 py-3 rounded-2xl text-white font-bold">완료</button>
@@ -267,71 +260,67 @@
 </div>
 
 <!-- 메뉴판 팝업 -->
-<div id="menuBoard" class="hidden fixed inset-0 z-50 flex items-end justify-center" style="background:rgba(0,0,0,0.85);" onclick="closeMenuBoard()">
+<div id="menuBoard" class="hidden fixed inset-0 z-[100] flex items-end justify-center" style="background:rgba(0,0,0,0.85);" onclick="closeMenuBoard()">
   <div onclick="event.stopPropagation()" class="w-full max-w-md mx-auto rounded-t-3xl overflow-hidden"
-    style="background:#fff8f0;animation:slideUp .3s cubic-bezier(0.34,1.4,0.64,1);max-height:90vh;overflow-y:auto;">
+    style="background:#fff8f0;animation:slideUp .3s cubic-bezier(0.34,1.4,0.64,1);max-height:92vh;display:flex;flex-direction:column;">
 
     <!-- 헤더 -->
-    <div class="px-4 pt-4 pb-2 flex items-center justify-between" style="background:#1a5276;">
+    <div class="px-4 pt-3 pb-2 flex items-center justify-between flex-shrink-0" style="background:#1a5276;">
       <div>
-        <div class="text-white font-bold text-base">억순이네</div>
+        <div class="text-white font-bold text-sm">억순이네</div>
         <div class="text-blue-200 text-xs">061-464-2008 · 010-2009-8442</div>
       </div>
-      <button onclick="closeMenuBoard()" class="text-white/60 text-2xl leading-none">✕</button>
-    </div>
-    <div class="text-center text-xs py-1 font-medium" style="background:#2874a6;color:#aed6f1;">
-      2026년 5월 1일부터 · 배달비 4,500원 · 55,500원 주문의
+      <button onclick="closeMenuBoard()" class="text-white/70 text-xl leading-none px-1">✕</button>
     </div>
 
-    <div class="p-3">
+    <div class="p-3 flex-1 overflow-y-auto">
 
       <!-- 식사 메뉴 -->
-      <div class="mb-3">
-        <div class="text-center py-1 rounded-lg mb-2 text-white text-sm font-bold" style="background:#27ae60;">식사 메뉴</div>
-        <div class="grid grid-cols-2 gap-x-2 gap-y-0.5">
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">순대국밥</span><span class="font-bold text-red-600">8,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">소머리국밥</span><span class="font-bold text-red-600">10,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">섞어국밥</span><span class="font-bold text-red-600">9,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">소내장탕</span><span class="font-bold text-red-600">10,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">머리국밥</span><span class="font-bold text-red-600">9,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">김치찌개</span><span class="font-bold text-red-600">8,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">뼈해장국</span><span class="font-bold text-red-600">10,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">순두부찌개</span><span class="font-bold text-red-600">8,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">사골우거지</span><span class="font-bold text-red-600">10,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">된장찌개</span><span class="font-bold text-red-600">8,000</span></div>
+      <div class="mb-2">
+        <div class="text-center py-1 rounded-lg mb-1 text-white text-sm font-bold" style="background:#27ae60;">식사 메뉴</div>
+        <div class="grid grid-cols-2 gap-x-3">
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">순대국밥</span><span class="font-bold text-red-600">8,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">소머리국밥</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">섞어국밥</span><span class="font-bold text-red-600">9,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">소내장탕</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">머리국밥</span><span class="font-bold text-red-600">9,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">김치찌개</span><span class="font-bold text-red-600">8,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">뼈해장국</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">순두부찌개</span><span class="font-bold text-red-600">8,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">사골우거지</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">된장찌개</span><span class="font-bold text-red-600">8,000</span></div>
         </div>
-        <div class="text-xs text-gray-400 mt-1 text-right">※ 인근 1,000원 맞춰넣으세요</div>
       </div>
 
       <!-- 사이드 + 주류 -->
-      <div class="grid grid-cols-2 gap-2 mb-3">
+      <div class="grid grid-cols-2 gap-2">
         <!-- 사이드 -->
         <div>
-          <div class="text-center py-1 rounded-lg mb-2 text-white text-sm font-bold" style="background:#e67e22;">사이드메뉴</div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">순대</span><span class="font-bold text-red-600">7,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">계란찜</span><span class="font-bold text-red-600">3,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">계란말이</span><span class="font-bold text-red-600">10,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">라면</span><span class="font-bold text-red-600">5,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">물냉면</span><span class="font-bold text-red-600">7,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">비빔냉면</span><span class="font-bold text-red-600">8,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">주먹밥</span><span class="font-bold text-red-600">3,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">볶음밥</span><span class="font-bold text-red-600">2,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">공기밥</span><span class="font-bold text-red-600">1,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">음료수</span><span class="font-bold text-red-600">2,000</span></div>
+          <div class="text-center py-1 rounded-lg mb-1 text-white text-xs font-bold" style="background:#e67e22;">사이드메뉴</div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">순대</span><span class="font-bold text-red-600">7,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">계란찜</span><span class="font-bold text-red-600">3,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">계란말이</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">라면</span><span class="font-bold text-red-600">5,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">물냉면</span><span class="font-bold text-red-600">7,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">비빔냉면</span><span class="font-bold text-red-600">8,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">주먹밥</span><span class="font-bold text-red-600">3,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">볶음밥</span><span class="font-bold text-red-600">2,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">공기밥</span><span class="font-bold text-red-600">1,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">음료수</span><span class="font-bold text-red-600">2,000</span></div>
         </div>
         <!-- 주류 -->
         <div>
-          <div class="text-center py-1 rounded-lg mb-2 text-white text-sm font-bold" style="background:#1a5276;">주류</div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">소주</span><span class="font-bold text-red-600">5,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">맥주</span><span class="font-bold text-red-600">5,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">막걸리</span><span class="font-bold text-red-600">4,000</span></div>
-          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">음료수</span><span class="font-bold text-red-600">2,000</span></div>
+          <div class="text-center py-1 rounded-lg mb-1 text-white text-xs font-bold" style="background:#1a5276;">주류</div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">소주</span><span class="font-bold text-red-600">5,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">맥주</span><span class="font-bold text-red-600">5,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">막걸리</span><span class="font-bold text-red-600">4,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">음료수</span><span class="font-bold text-red-600">2,000</span></div>
         </div>
       </div>
 
       <!-- 하단 안내 -->
-      <div class="text-center text-xs py-2 rounded-lg" style="background:#eaf4fb;color:#1a5276;">
-        📞 061-464-2008 &nbsp;|&nbsp; 📱 010-2009-8442 (문자 주문)
+      <div class="text-center text-xs py-2 mt-2 rounded-lg" style="background:#eaf4fb;color:#1a5276;">
+        📞 061-464-2008 &nbsp;|&nbsp; 📱 010-2009-8442
       </div>
     </div>
   </div>
@@ -409,12 +398,11 @@ function switchTab(tab) {
   if (tab==='hist') renderHistory();
 }
 
-// ── Step 1: 멤버 그리드 (이름만, 번호 없음) ──
+// ── Step 1: 멤버 그리드 (이름만, 체크박스 없음) ──
 function renderMemberGrid() {
   document.getElementById('memberGrid').innerHTML = appData.members.map(m => `
     <button id="mb_${m.id}" class="member-btn" onclick="toggleMember(${m.id}, this)">
-      <span class="text-white font-medium text-sm truncate">${m.name}</span>
-      <div class="check-circle"><span class="check-icon">✓</span></div>
+      <span class="text-white font-medium text-sm truncate w-full text-center">${m.name}</span>
     </button>
   `).join('');
 }
@@ -439,15 +427,10 @@ function renderPersonCards() {
   const workers = sortedWorkers();
   document.getElementById('step2Sub').textContent = `${workers.length}명 선택됨`;
   document.getElementById('personCards').innerHTML = workers.map((m,i) => `
-    <div id="card_${m.id}" class="person-card p-4" onclick="openMenuPopup(${m.id})" style="animation-delay:${i*0.05}s">
-      <div class="flex items-center gap-3 mb-3">
-        <div class="avatar">${m.name[0]}</div>
-        <div class="min-w-0">
-          <div class="text-white font-bold text-sm truncate">${m.name}</div>
-        </div>
-      </div>
-      <div id="cardMenu_${m.id}" class="text-white/35 text-xs">탭하여 메뉴 선택</div>
-      <div id="cardPrice_${m.id}" class="text-emerald-400 font-bold text-sm mt-1 hidden"></div>
+    <div id="card_${m.id}" class="person-card p-4 flex flex-col items-center justify-center" onclick="openMenuPopup(${m.id})" style="animation-delay:${i*0.05}s;min-height:90px;">
+      <div class="text-white font-bold text-base mb-2 text-center">${m.name}</div>
+      <div id="cardMenu_${m.id}" class="text-white/35 text-xs text-center">탭하여 메뉴 선택</div>
+      <div id="cardPrice_${m.id}" class="text-emerald-400 font-bold text-sm mt-1 hidden text-center"></div>
     </div>
   `).join('');
 }
@@ -458,25 +441,65 @@ function openMenuPopup(memberId) {
   currentMenuSelection = [...(orders[memberId]||[])];
   const m = appData.members.find(x=>x.id===memberId);
   document.getElementById('menuPopupName').textContent = `${m.name} 메뉴 선택`;
+
+  const catStyle = {
+    '식사':   { emoji:'🍲', color:'#4ade80', border:'rgba(74,222,128,0.3)',  selBg:'rgba(99,102,241,0.5)',  bg:'rgba(255,255,255,0.06)' },
+    '사이드': { emoji:'🥢', color:'#fb923c', border:'rgba(251,146,60,0.3)', selBg:'rgba(99,102,241,0.5)',  bg:'rgba(255,255,255,0.06)' }
+  };
+  const menuEmoji = {
+    '순대국밥':'🍜','섞어국밥':'🍜','머리국밥':'🍜','뼈해장국':'🍲',
+    '사골우거지':'🥘','소머리국밥':'🍜','소내장탕':'🫕','김치찌개':'🌶️',
+    '순두부찌개':'🫕','된장찌개':'🍯','순대':'🌯','계란찜':'🥚',
+    '계란말이':'🥚','라면':'🍜','물냉면':'🍝','비빔냉면':'🍝',
+    '주먹밥':'🍙','볶음밥':'🍚','공기밥':'🍚','음료수':'🥤'
+  };
+
   const cats = [...new Set(appData.menu.map(x=>x.category))];
   const listEl = document.getElementById('menuList');
-  listEl.innerHTML = cats.map(cat=>`
-    <div class="text-white/30 text-xs font-semibold tracking-wider mb-2 mt-1 px-1">${cat}</div>
-    ${appData.menu.filter(x=>x.category===cat).map(item=>{
-      const sel = currentMenuSelection.some(s=>s.id===item.id);
-      return `<div class="menu-item${sel?' selected':''}" data-menu-id="${item.id}">
-        <span class="text-white font-medium text-sm">${item.name}</span>
-        <span class="text-white/45 text-sm">${item.price.toLocaleString()}원</span>
+
+  listEl.innerHTML = cats.map(cat => {
+    const cs = catStyle[cat] || { emoji:'🍽️', color:'#a5b4fc', border:'rgba(165,180,252,0.3)', selBg:'rgba(99,102,241,0.5)', bg:'rgba(255,255,255,0.06)' };
+    const items = appData.menu.filter(x=>x.category===cat);
+    return `
+      <div style="margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;color:${cs.color};margin-bottom:6px;">${cs.emoji} ${cat}</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+          ${items.map(item=>{
+            const sel = currentMenuSelection.some(s=>s.id===item.id);
+            const em = menuEmoji[item.name]||'🍽️';
+            return `<div class="kiosk-item" data-menu-id="${item.id}"
+              style="border-radius:14px;padding:10px 4px 8px;text-align:center;cursor:pointer;
+              touch-action:manipulation;user-select:none;-webkit-user-select:none;
+              background:${sel?'rgba(99,102,241,0.45)':cs.bg};
+              border:1.5px solid ${sel?'rgba(99,102,241,0.9)':cs.border};
+              transition:all .15s;">
+              <div style="font-size:24px;line-height:1;margin-bottom:4px;">${em}</div>
+              <div style="font-size:10px;font-weight:600;color:${sel?'#c7d2fe':'rgba(255,255,255,0.8)'};margin-bottom:2px;line-height:1.2;">${item.name}</div>
+              <div style="font-size:9px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.35)'};">${item.price.toLocaleString()}원</div>
+            </div>`;
+          }).join('')}
+        </div>
       </div>`;
-    }).join('')}
-  `).join('');
-  listEl.onclick = e=>{
-    const el = e.target.closest('.menu-item'); if(!el) return;
+  }).join('');
+
+  listEl.onclick = e => {
+    const el = e.target.closest('.kiosk-item'); if(!el) return;
     const menuId = parseInt(el.dataset.menuId);
     const menuData = appData.menu.find(x=>x.id===menuId);
     const idx = currentMenuSelection.findIndex(x=>x.id===menuId);
-    if(idx>-1){ currentMenuSelection.splice(idx,1); el.classList.remove('selected'); }
-    else { currentMenuSelection.push(menuData); el.classList.add('selected'); }
+    if(idx>-1){
+      currentMenuSelection.splice(idx,1);
+      const cat = menuData.category;
+      const cs = catStyle[cat]||{border:'rgba(165,180,252,0.3)',bg:'rgba(255,255,255,0.06)'};
+      el.style.background=cs.bg; el.style.borderColor=cs.border;
+      el.children[1].style.color='rgba(255,255,255,0.8)';
+      el.children[2].style.color='rgba(255,255,255,0.35)';
+    } else {
+      currentMenuSelection.push(menuData);
+      el.style.background='rgba(99,102,241,0.45)'; el.style.borderColor='rgba(99,102,241,0.9)';
+      el.children[1].style.color='#c7d2fe';
+      el.children[2].style.color='#6ee7b7';
+    }
   };
   document.getElementById('menuPopup').classList.remove('hidden');
 }
@@ -702,6 +725,16 @@ function show(id,visible) {
   const el=document.getElementById(id);
   if(visible){ el.classList.remove('hidden'); el.classList.add('fade-in'); }
   else el.classList.add('hidden');
+}
+
+// ── 메뉴판 팝업 ──
+function openMenuBoard() {
+  document.getElementById('menuBoard').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+function closeMenuBoard() {
+  document.getElementById('menuBoard').classList.add('hidden');
+  document.body.style.overflow = '';
 }
 
 // ── 홈 화면 추가 (Android PWA) ──
