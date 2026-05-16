@@ -131,6 +131,11 @@
       <div class="text-4xl mb-2">🍱</div>
       <h1 class="text-2xl font-bold text-white mb-1">억순이네 식사 주문</h1>
       <p class="text-white/40 text-sm">오늘 근무자를 모두 선택하세요</p>
+      <!-- 메뉴판 보기 버튼 -->
+      <button onclick="openMenuBoard()" class="mt-3 px-4 py-2 rounded-xl text-xs font-bold"
+        style="background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;">
+        📋 메뉴판 보기
+      </button>
     </div>
 
     <!-- 탭: 새주문 / 최근주문 -->
@@ -259,6 +264,77 @@
 <div id="toast" class="hidden fixed bottom-8 left-1/2 z-50 px-5 py-3 rounded-2xl text-white text-sm font-medium"
   style="transform:translateX(-50%);background:rgba(16,185,129,0.9);backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,0.3)">
   ✅ 주문이 저장되었습니다
+</div>
+
+<!-- 메뉴판 팝업 -->
+<div id="menuBoard" class="hidden fixed inset-0 z-50 flex items-end justify-center" style="background:rgba(0,0,0,0.85);" onclick="closeMenuBoard()">
+  <div onclick="event.stopPropagation()" class="w-full max-w-md mx-auto rounded-t-3xl overflow-hidden"
+    style="background:#fff8f0;animation:slideUp .3s cubic-bezier(0.34,1.4,0.64,1);max-height:90vh;overflow-y:auto;">
+
+    <!-- 헤더 -->
+    <div class="px-4 pt-4 pb-2 flex items-center justify-between" style="background:#1a5276;">
+      <div>
+        <div class="text-white font-bold text-base">억순이네</div>
+        <div class="text-blue-200 text-xs">061-464-2008 · 010-2009-8442</div>
+      </div>
+      <button onclick="closeMenuBoard()" class="text-white/60 text-2xl leading-none">✕</button>
+    </div>
+    <div class="text-center text-xs py-1 font-medium" style="background:#2874a6;color:#aed6f1;">
+      2026년 5월 1일부터 · 배달비 4,500원 · 55,500원 주문의
+    </div>
+
+    <div class="p-3">
+
+      <!-- 식사 메뉴 -->
+      <div class="mb-3">
+        <div class="text-center py-1 rounded-lg mb-2 text-white text-sm font-bold" style="background:#27ae60;">식사 메뉴</div>
+        <div class="grid grid-cols-2 gap-x-2 gap-y-0.5">
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">순대국밥</span><span class="font-bold text-red-600">8,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">소머리국밥</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">섞어국밥</span><span class="font-bold text-red-600">9,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">소내장탕</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">머리국밥</span><span class="font-bold text-red-600">9,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">김치찌개</span><span class="font-bold text-red-600">8,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">뼈해장국</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">순두부찌개</span><span class="font-bold text-red-600">8,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">사골우거지</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">된장찌개</span><span class="font-bold text-red-600">8,000</span></div>
+        </div>
+        <div class="text-xs text-gray-400 mt-1 text-right">※ 인근 1,000원 맞춰넣으세요</div>
+      </div>
+
+      <!-- 사이드 + 주류 -->
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <!-- 사이드 -->
+        <div>
+          <div class="text-center py-1 rounded-lg mb-2 text-white text-sm font-bold" style="background:#e67e22;">사이드메뉴</div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">순대</span><span class="font-bold text-red-600">7,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">계란찜</span><span class="font-bold text-red-600">3,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">계란말이</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">라면</span><span class="font-bold text-red-600">5,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">물냉면</span><span class="font-bold text-red-600">7,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">비빔냉면</span><span class="font-bold text-red-600">8,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">주먹밥</span><span class="font-bold text-red-600">3,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">볶음밥</span><span class="font-bold text-red-600">2,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">공기밥</span><span class="font-bold text-red-600">1,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">음료수</span><span class="font-bold text-red-600">2,000</span></div>
+        </div>
+        <!-- 주류 -->
+        <div>
+          <div class="text-center py-1 rounded-lg mb-2 text-white text-sm font-bold" style="background:#1a5276;">주류</div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">소주</span><span class="font-bold text-red-600">5,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">맥주</span><span class="font-bold text-red-600">5,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">막걸리</span><span class="font-bold text-red-600">4,000</span></div>
+          <div class="flex justify-between text-xs py-1 border-b border-gray-200"><span class="text-gray-800">음료수</span><span class="font-bold text-red-600">2,000</span></div>
+        </div>
+      </div>
+
+      <!-- 하단 안내 -->
+      <div class="text-center text-xs py-2 rounded-lg" style="background:#eaf4fb;color:#1a5276;">
+        📞 061-464-2008 &nbsp;|&nbsp; 📱 010-2009-8442 (문자 주문)
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
