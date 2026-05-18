@@ -470,20 +470,21 @@ async function loadData() {
   document.querySelectorAll('#callBtnLabel,#callBtnLabel2').forEach(el => el.textContent = `${rname} 전화`);
   document.querySelector('h1') && (document.querySelector('h1').textContent = `${rname} 식사 주문`);
 
-  // review 라벨 자동 생성 (없으면)
-  if (s.gh_token) {
+  // review 라벨 자동 생성
+  getToken().then(token => {
+    if (!token) return;
     fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/labels/review`, {
-      headers: { Authorization: `token ${s.gh_token}`, Accept: 'application/vnd.github.v3+json' }
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
     }).then(r => {
       if (r.status === 404) {
         fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/labels`, {
           method: 'POST',
-          headers: { Authorization: `token ${s.gh_token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: 'review', color: 'e11d48', description: '맛 평가 리뷰' })
         });
       }
     }).catch(()=>{});
-  }
+  });
 
   renderMemberGrid();
 }
@@ -1201,12 +1202,33 @@ function showGuide() {
 }
 
 // ── 맛평가 ──
-const GH_OWNER = 'diskpark';
-const GH_REPO  = 'order';
-const GH_API   = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/issues`;
+const GH_OWNER  = 'diskpark';
+const GH_REPO   = 'order';
+const GH_API    = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/issues`;
+const GIST_ID   = 'e6f06cbe60d8c1e84ee99553e05d4e87';
 
-function getToken() { return (appData.settings||{}).gh_token||''; }
-function setToken(t) { if(appData.settings) appData.settings.gh_token = t.trim(); }
+let _ghToken = '';
+
+async function getToken() {
+  if (_ghToken) return _ghToken;
+  // 1) appData에 토큰 있으면 사용 (NAS 버전)
+  if (appData?.settings?.gh_token) {
+    _ghToken = appData.settings.gh_token;
+    return _ghToken;
+  }
+  // 2) Gist에서 토큰 로드 (GitHub Pages 버전)
+  try {
+    const r = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+    const data = await r.json();
+    const content = data?.files?.['config.json']?.content;
+    if (content) {
+      const cfg = JSON.parse(content);
+      _ghToken = cfg.gh_token || '';
+    }
+  } catch(e) { console.error('Gist 토큰 로드 실패:', e); }
+  return _ghToken;
+}
+function setToken(t) { _ghToken = t.trim(); }
 
 let rvCurrentMenu = null;
 let rvStar = 4;
@@ -1226,10 +1248,10 @@ let rvIssuesCache = null;
 
 async function fetchIssues() {
   if (rvIssuesCache) return rvIssuesCache;
-  const token = getToken();
+  const token = await getToken();
   if (!token) {
     console.error('토큰 없음');
-    return [];
+    return { error: '토큰 없음', msg: 'Gist에서 토큰을 불러오지 못했습니다.' };
   }
   try {
     const r = await fetch(`${GH_API}?state=open&labels=review&per_page=100`, {
@@ -1419,11 +1441,12 @@ async function submitRvComment() {
   btn.textContent = '등록 중...'; btn.disabled = true;
 
   const body = JSON.stringify({ menu: rvCurrentMenu, star: rvStar, comment: text });
+  const token = await getToken();
   try {
     await fetch(GH_API, {
       method: 'POST',
       headers: {
-        Authorization: `token ${getToken()}`,
+        Authorization: `token ${token}`,
         Accept: 'application/vnd.github.v3+json',
         'Content-Type': 'application/json'
       },
