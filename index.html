@@ -7,365 +7,215 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="식사주문">
 <meta name="theme-color" content="#0f172a">
-<link rel="manifest" href="https://1.diskpark.me/order/manifest.json">
 <title>식사 주문</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
-  * { font-family: 'Noto Sans KR', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-  body { background: #0f172a; min-height: 100vh; overflow-x: hidden; }
-  .bg-mesh {
-    background:
-      radial-gradient(ellipse at 15% 15%, rgba(99,102,241,0.18) 0%, transparent 55%),
-      radial-gradient(ellipse at 85% 80%, rgba(16,185,129,0.12) 0%, transparent 55%),
-      radial-gradient(ellipse at 65% 5%,  rgba(236,72,153,0.08) 0%, transparent 40%),
-      #0f172a;
-  }
-  .glass {
-    background: rgba(255,255,255,0.05);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  .btn-primary { background: linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 4px 20px rgba(99,102,241,0.4); transition:all .2s; }
-  .btn-primary:active { transform:scale(.97); }
-  .btn-green   { background: linear-gradient(135deg,#10b981,#059669); box-shadow:0 4px 20px rgba(16,185,129,0.4); transition:all .2s; }
-  .btn-green:active   { transform:scale(.97); }
-  .btn-blue    { background: linear-gradient(135deg,#3b82f6,#2563eb); box-shadow:0 4px 20px rgba(59,130,246,0.4);  transition:all .2s; }
-  .btn-blue:active    { transform:scale(.97); }
-  .btn-gray    { background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); transition:all .2s; }
-  .btn-gray:active    { transform:scale(.97); }
-
-  .member-btn {
-    background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);
-    border-radius:16px; padding:11px 10px; cursor:pointer; transition:all .2s;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .member-btn:active { transform:scale(.96); }
-  .member-btn.checked { background:rgba(99,102,241,0.35); border-color:rgba(99,102,241,0.8); box-shadow:0 0 14px rgba(99,102,241,0.3); }
-
-  /* 인원 카드 */
-  .person-card {
-    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
-    border-radius:20px; cursor:pointer; transition:all .25s;
-    position:relative; overflow:hidden;
-    animation:fadeIn .35s ease forwards; opacity:0;
-  }
-  .person-card:active { transform:scale(.97); }
-  .person-card.has-menu { border-color:rgba(16,185,129,0.5); background:rgba(16,185,129,0.07); }
-  .avatar {
-    width:48px; height:48px; background:linear-gradient(135deg,#6366f1,#8b5cf6);
-    border-radius:14px; display:flex; align-items:center; justify-content:center;
-    font-size:18px; font-weight:700; color:white; flex-shrink:0;
-  }
-
-  /* 메뉴 팝업 */
-  .overlay { background:rgba(0,0,0,0.75); }
-  .popup {
-    background:rgba(13,20,40,0.98); border:1px solid rgba(255,255,255,0.14);
-    border-radius:28px 28px 0 0;
-    animation:slideUp .3s cubic-bezier(0.34,1.4,0.64,1);
-    max-height:85vh; display:flex; flex-direction:column;
-  }
-  .menu-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; padding:0 0 4px; }
-  .menu-scroll::-webkit-scrollbar { width:3px; }
-  .menu-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:2px; }
-  .menu-item {
-    background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-    border-radius:14px; padding:14px 16px; margin-bottom:8px;
-    display:flex; justify-content:space-between; align-items:center;
-    cursor:pointer; transition:background .15s, border-color .15s;
-    touch-action:manipulation; user-select:none; -webkit-user-select:none;
-  }
-  .menu-item.selected { background:rgba(99,102,241,0.28); border-color:rgba(99,102,241,0.7); }
-
-  /* 히스토리 카드 */
-  .hist-card {
-    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08);
-    border-radius:18px; padding:14px 16px; margin-bottom:10px;
-    cursor:pointer; transition:all .2s;
-  }
-  .hist-card:active { transform:scale(.98); background:rgba(255,255,255,0.08); }
-  .hist-tag {
-    display:inline-block; padding:2px 10px; border-radius:20px; font-size:11px; font-weight:600;
-  }
-  .hist-tag.lunch   { background:rgba(251,191,36,0.2);  color:#fbbf24; }
-  .hist-tag.dinner  { background:rgba(99,102,241,0.2);  color:#a5b4fc; }
-  .hist-tag.other   { background:rgba(156,163,175,0.2); color:#9ca3af; }
-
-  @keyframes glowPulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(251,191,36,0.4), 0 0 20px rgba(251,191,36,0.2); }
-    50% { box-shadow: 0 0 16px rgba(251,191,36,0.8), 0 0 40px rgba(251,191,36,0.4); }
-  }
-  #addHomeBtn { animation: glowPulse 2s ease-in-out infinite; }
-
-  @keyframes slideUp { from{transform:translateY(50px);opacity:0} to{transform:translateY(0);opacity:1} }
-  @keyframes fadeIn  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  .fade-in { animation:fadeIn .35s ease forwards; }
-
-  .summary-row {
-    display:grid; grid-template-columns:68px 1fr 76px;
-    gap:6px; align-items:center; padding:11px 0;
-    border-bottom:1px solid rgba(255,255,255,0.06);
-  }
-  .tab-btn { padding:8px 16px; border-radius:12px; font-size:13px; font-weight:600; color:rgba(255,255,255,0.4); transition:all .2s; cursor:pointer; }
-  .tab-btn.active { background:rgba(99,102,241,0.3); color:#a5b4fc; }
+* { font-family:'Noto Sans KR',sans-serif; -webkit-tap-highlight-color:transparent; box-sizing:border-box; }
+body { background:#0f172a; min-height:100vh; overflow-x:hidden; }
+.bg-mesh {
+  background:
+    radial-gradient(ellipse at 15% 15%,rgba(99,102,241,.18) 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 80%,rgba(16,185,129,.12) 0%,transparent 55%),
+    #0f172a;
+}
+.glass { background:rgba(255,255,255,.05); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.1); }
+.btn-p { background:linear-gradient(135deg,#6366f1,#8b5cf6); box-shadow:0 4px 20px rgba(99,102,241,.4); transition:all .2s; }
+.btn-p:active { transform:scale(.97); }
+.btn-g { background:linear-gradient(135deg,#10b981,#059669); box-shadow:0 4px 20px rgba(16,185,129,.4); transition:all .2s; }
+.btn-g:active { transform:scale(.97); }
+.btn-b { background:linear-gradient(135deg,#3b82f6,#2563eb); box-shadow:0 4px 20px rgba(59,130,246,.4); transition:all .2s; }
+.btn-b:active { transform:scale(.97); }
+.mb-btn { background:rgba(255,255,255,.05); border:1.5px solid rgba(255,255,255,.1); border-radius:16px; padding:11px 10px; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; }
+.mb-btn:active { transform:scale(.96); }
+.mb-btn.on { background:rgba(99,102,241,.35); border-color:rgba(99,102,241,.8); box-shadow:0 0 14px rgba(99,102,241,.3); }
+.p-card { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1); border-radius:20px; cursor:pointer; transition:all .25s; animation:fadeIn .35s ease forwards; opacity:0; }
+.p-card:active { transform:scale(.97); }
+.p-card.has-menu { border-color:rgba(16,185,129,.5); background:rgba(16,185,129,.07); }
+.overlay { background:rgba(0,0,0,.75); }
+.popup { background:rgba(13,20,40,.98); border:1px solid rgba(255,255,255,.14); border-radius:28px 28px 0 0; animation:slideUp .3s cubic-bezier(.34,1.4,.64,1); max-height:85vh; display:flex; flex-direction:column; }
+.menu-scroll { overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1; }
+.menu-scroll::-webkit-scrollbar { width:3px; }
+.menu-scroll::-webkit-scrollbar-thumb { background:rgba(255,255,255,.15); border-radius:2px; }
+.kiosk-item { border-radius:14px; padding:12px 4px 10px; text-align:center; cursor:pointer; touch-action:manipulation; user-select:none; -webkit-user-select:none; transition:all .15s; }
+.tab-btn { padding:8px 16px; border-radius:12px; font-size:13px; font-weight:600; color:rgba(255,255,255,.4); transition:all .2s; cursor:pointer; }
+.tab-btn.active { background:rgba(99,102,241,.3); color:#a5b4fc; }
+.hist-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:14px 16px; margin-bottom:10px; cursor:pointer; transition:all .2s; }
+.hist-card:active { transform:scale(.98); }
+.rv-row { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:18px; margin-bottom:8px; cursor:pointer; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); transition:all .2s; }
+.rv-row:active { transform:scale(.98); }
+.rv-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:14px 16px; margin-bottom:8px; }
+.write-box { background:rgba(239,68,68,.08); border:1.5px solid rgba(239,68,68,.3); border-radius:20px; padding:16px; margin-bottom:16px; }
+.sbar-track { flex:1; height:5px; background:rgba(255,255,255,.1); border-radius:3px; overflow:hidden; }
+.sbar-fill { height:100%; background:linear-gradient(90deg,#fbbf24,#f59e0b); border-radius:3px; }
+.sum-row { display:grid; grid-template-columns:68px 1fr 76px; gap:6px; align-items:center; padding:11px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+@keyframes slideUp { from{transform:translateY(50px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.fade-in { animation:fadeIn .35s ease forwards; }
+@keyframes glowPulse { 0%,100%{box-shadow:0 0 8px rgba(251,191,36,.4)} 50%{box-shadow:0 0 20px rgba(251,191,36,.8)} }
+@keyframes glowRed { 0%,100%{box-shadow:0 0 6px rgba(239,68,68,.3)} 50%{box-shadow:0 0 18px rgba(239,68,68,.7)} }
+#addHomeBtn { animation:glowPulse 2s ease-in-out infinite; }
 </style>
 </head>
 <body class="bg-mesh">
-
 <div id="app" class="max-w-md mx-auto px-4 pt-6 pb-28">
 
-  <!-- ── STEP 1: 근무자 선택 ── -->
+  <!-- STEP 1 -->
   <div id="step1" class="fade-in">
     <div class="text-center mb-5 pt-2">
       <div class="text-4xl mb-2">🍱</div>
-      <h1 class="text-2xl font-bold text-white mb-1">억순이네 식사 주문</h1>
+      <h1 id="appTitle" class="text-2xl font-bold text-white mb-1">억순이네 식사 주문</h1>
       <p class="text-white/40 text-sm">오늘 근무자를 모두 선택하세요</p>
-      <!-- 메뉴판 보기 + 맛평가 버튼 -->
       <div class="flex gap-2 justify-center mt-3">
-        <button onclick="openMenuBoard()" class="px-4 py-2 rounded-xl text-xs font-bold"
-          style="background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;">
-          📋 메뉴판 보기
-        </button>
-        <button onclick="openReview()" class="px-4 py-2 rounded-xl text-xs font-bold"
-          style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.5);color:#f87171;animation:glowPulse2 2s ease-in-out infinite;">
-          ⭐ 맛 평가
-        </button>
+        <button onclick="openMenuBoard()" class="px-4 py-2 rounded-xl text-xs font-bold" style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.4);color:#fbbf24;">📋 메뉴판 보기</button>
+        <button onclick="openReview()" class="px-4 py-2 rounded-xl text-xs font-bold" style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.5);color:#f87171;animation:glowRed 2s ease-in-out infinite;">⭐ 맛 평가</button>
       </div>
     </div>
-
-    <!-- 탭: 새주문 / 요리주문만 / 최근주문 -->
     <div class="flex gap-2 mb-4">
       <div class="tab-btn active" id="tabNew" onclick="switchTab('new')">새 주문</div>
       <div class="tab-btn" id="tabDish" onclick="switchTab('dish')">요리주문만</div>
       <div class="tab-btn" id="tabHist" onclick="switchTab('hist')">최근 주문</div>
     </div>
-
-    <!-- 새 주문 패널 -->
+    <!-- 새주문 -->
     <div id="panelNew">
       <div class="glass rounded-2xl px-4 py-3 mb-4 flex items-center justify-between">
         <span class="text-white/50 text-sm">선택된 인원</span>
-        <span id="selectedCount" class="text-indigo-400 font-bold text-lg">0명</span>
+        <span id="selCount" class="text-indigo-400 font-bold text-lg">0명</span>
       </div>
       <div id="memberGrid" class="grid grid-cols-3 gap-2 mb-5"></div>
-      <button onclick="confirmWorkers()" class="btn-primary w-full py-4 rounded-2xl text-white font-bold text-base">
-        메뉴 선택하기 →
-      </button>
+      <button onclick="confirmWorkers()" class="btn-p w-full py-4 rounded-2xl text-white font-bold">메뉴 선택하기 →</button>
     </div>
-
-    <!-- 요리주문만 패널 -->
+    <!-- 요리주문만 -->
     <div id="panelDish" class="hidden">
-      <!-- 전골류 -->
-      <div class="mb-3">
-        <div class="text-xs font-bold mb-2 px-1" style="color:#fb923c;">🍲 전골류</div>
-        <div id="dishGrid1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
-      </div>
-      <!-- 볶음류 -->
-      <div class="mb-3">
-        <div class="text-xs font-bold mb-2 px-1" style="color:#f472b6;">🥘 볶음류</div>
-        <div id="dishGrid2" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
-      </div>
-      <!-- 공기밥 -->
-      <div class="mb-3">
-        <div class="text-xs font-bold mb-2 px-1" style="color:#60a5fa;">🍚 추가</div>
-        <div id="dishGrid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
-      </div>
-      <!-- 선택된 메뉴 박스 -->
-      <div class="rounded-2xl px-4 py-3 mb-3" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);min-height:52px;">
+      <div class="mb-3"><div class="text-xs font-bold mb-2 px-1" style="color:#fb923c;">🍲 전골류</div><div id="dishGrid1" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div></div>
+      <div class="mb-3"><div class="text-xs font-bold mb-2 px-1" style="color:#f472b6;">🥘 볶음류</div><div id="dishGrid2" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div></div>
+      <div class="mb-3"><div class="text-xs font-bold mb-2 px-1" style="color:#60a5fa;">🍚 추가</div><div id="dishGrid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div></div>
+      <div class="rounded-2xl px-4 py-3 mb-3" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);min-height:52px;">
         <div class="text-white/30 text-xs mb-2">선택된 메뉴</div>
-        <div id="dishSelectedBar" class="flex flex-wrap gap-2 items-center">
-          <span id="dishSelectedEmpty" class="text-white/20 text-xs">아직 선택 없음</span>
-        </div>
+        <div id="dishSelBar" class="flex flex-wrap gap-2 items-center"><span class="text-white/20 text-xs">아직 선택 없음</span></div>
       </div>
-      <button onclick="confirmDishOrder()" class="btn-primary w-full py-4 rounded-2xl text-white font-bold text-base">
-        주문 확인 →
-      </button>
+      <button onclick="confirmDishOrder()" class="btn-p w-full py-4 rounded-2xl text-white font-bold">주문 확인 →</button>
     </div>
-
-    <!-- 최근 주문 패널 -->
+    <!-- 최근주문 -->
     <div id="panelHist" class="hidden">
       <div class="flex justify-end mb-3">
-        <button onclick="clearHistory()" class="text-white/30 text-xs border border-white/10 rounded-xl px-3 py-1.5 transition-all" style="transition:all .2s">🗑 전체 초기화</button>
+        <button onclick="clearHistory()" class="text-white/30 text-xs border border-white/10 rounded-xl px-3 py-1.5">🗑 전체 초기화</button>
       </div>
       <div id="histList"></div>
       <p id="histEmpty" class="text-white/30 text-sm text-center py-10 hidden">저장된 주문 내역이 없습니다.</p>
     </div>
   </div>
 
-  <!-- ── STEP 2: 인원별 메뉴 카드 ── -->
+  <!-- STEP 2 -->
   <div id="step2" class="hidden">
     <div class="flex items-center gap-3 mb-5">
       <button onclick="goBack(2)" class="glass w-9 h-9 rounded-xl flex items-center justify-center text-white/60 text-xl">‹</button>
-      <div>
-        <h2 class="text-white font-bold text-lg">메뉴 선택</h2>
-        <p id="step2Sub" class="text-white/40 text-xs"></p>
-      </div>
+      <div><h2 class="text-white font-bold text-lg">메뉴 선택</h2><p id="step2Sub" class="text-white/40 text-xs"></p></div>
     </div>
     <div id="personCards" class="grid grid-cols-2 gap-3 mb-5"></div>
-    <button onclick="goToSummary()" class="btn-primary w-full py-4 rounded-2xl text-white font-bold text-base">
-      주문 확인 →
-    </button>
+    <button onclick="goToSummary()" class="btn-p w-full py-4 rounded-2xl text-white font-bold">주문 확인 →</button>
   </div>
 
-  <!-- ── STEP 3: 최종 확인 ── -->
+  <!-- STEP 3 -->
   <div id="step3" class="hidden">
     <div class="flex items-center gap-3 mb-5">
       <button onclick="goBack(3)" class="glass w-9 h-9 rounded-xl flex items-center justify-center text-white/60 text-xl">‹</button>
       <h2 class="text-white font-bold text-lg">주문 확인</h2>
     </div>
-
     <div class="glass rounded-2xl p-4 mb-3">
-      <div id="summaryList"></div>
-      <div class="summary-row border-b-0 mt-1">
-        <span class="text-white/40 text-xs">소계</span><span></span>
-        <span id="subtotalAmt" class="text-white/70 text-sm font-bold text-right"></span>
-      </div>
+      <div id="sumList"></div>
+      <div class="sum-row border-b-0 mt-1"><span class="text-white/40 text-xs">소계</span><span></span><span id="subAmt" class="text-white/70 text-sm font-bold text-right"></span></div>
     </div>
-
     <div class="glass rounded-2xl px-4 py-3 mb-3 flex items-center justify-between">
-      <div><div class="text-white/60 text-sm">배달비</div><div class="text-white/25 text-xs mt-0.5">고정</div></div>
+      <div><div class="text-white/60 text-sm">배달비</div><div class="text-white/25 text-xs">고정</div></div>
       <span class="text-white font-bold">4,500원</span>
     </div>
-
     <div class="glass rounded-2xl px-4 py-4 mb-5 flex items-center justify-between">
       <span class="text-white font-bold">총 합계</span>
       <span id="totalAmt" class="text-2xl font-bold text-emerald-400"></span>
     </div>
-
-    <button onclick="sendSMS()" class="btn-green w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 mb-3">
-      <span>💬</span> 문자 보내기
-    </button>
-    <button id="callBtn" onclick="callRestaurant()" class="btn-blue w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2">
-      <span>📞</span> <span id="callBtnLabel">억순이네 전화</span>
-    </button>
-
-    <!-- 안내 문구 + 홈 추가 버튼 -->
-    <div id="guideArea" class="mt-4 rounded-2xl px-4 py-4 hidden"
-      style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.4);">
-      <p id="guideText" class="text-center leading-relaxed mb-3"
-        style="color:#fde68a;font-size:14px;font-weight:500;"></p>
-      <button id="addHomeBtn" class="hidden w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2"
-        style="background:rgba(251,191,36,0.3);border:2px solid rgba(251,191,36,0.8);color:#fbbf24;font-size:15px;"
-        onclick="addToHomeScreen()">
-        📲 홈 화면에 바로가기 추가
-      </button>
+    <button onclick="sendSMS()" class="btn-g w-full py-4 rounded-2xl text-white font-bold flex items-center justify-center gap-2 mb-3">💬 문자 보내기</button>
+    <button onclick="callRestaurant()" class="btn-b w-full py-4 rounded-2xl text-white font-bold flex items-center justify-center gap-2 mb-3">📞 <span id="callLabel">억순이네 전화</span></button>
+    <div id="guideArea" class="mt-2 rounded-2xl px-4 py-4 hidden" style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.4);">
+      <p id="guideText" class="text-center leading-relaxed mb-3" style="color:#fde68a;font-size:14px;font-weight:500;"></p>
+      <button id="addHomeBtn" class="hidden w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-2" style="background:rgba(251,191,36,.3);border:2px solid rgba(251,191,36,.8);color:#fbbf24;font-size:15px;" onclick="addToHomeScreen()">📲 홈 화면에 바로가기 추가</button>
     </div>
   </div>
 
-  <!-- ── STEP 4: 히스토리 상세 ── -->
+  <!-- STEP 4: 히스토리 상세 -->
   <div id="step4" class="hidden">
     <div class="flex items-center gap-3 mb-5">
       <button onclick="goBack(4)" class="glass w-9 h-9 rounded-xl flex items-center justify-center text-white/60 text-xl">‹</button>
-      <div>
-        <h2 class="text-white font-bold text-lg">주문 내역</h2>
-        <p id="step4Sub" class="text-white/40 text-xs"></p>
-      </div>
+      <div><h2 class="text-white font-bold text-lg">주문 내역</h2><p id="step4Sub" class="text-white/40 text-xs"></p></div>
     </div>
     <div id="step4Body"></div>
-    <button onclick="resendSMS()" class="btn-green w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2 mt-4 mb-3">
-      <span>💬</span> 다시 문자 보내기
-    </button>
-    <button onclick="callRestaurant()" class="btn-blue w-full py-4 rounded-2xl text-white font-bold text-base flex items-center justify-center gap-2">
-      <span>📞</span> <span id="callBtnLabel2">억순이네 전화</span>
-    </button>
+    <button onclick="resendSMS()" class="btn-g w-full py-4 rounded-2xl text-white font-bold flex items-center justify-center gap-2 mt-4 mb-3">💬 다시 문자 보내기</button>
+    <button onclick="callRestaurant()" class="btn-b w-full py-4 rounded-2xl text-white font-bold flex items-center justify-center gap-2">📞 <span id="callLabel2">억순이네 전화</span></button>
   </div>
 </div>
 
-<!-- 메뉴 선택 팝업 - 전체화면 -->
-<div id="menuPopup" class="hidden fixed inset-0 z-50" style="background:rgba(13,20,40,0.98);">
+<!-- 메뉴선택 팝업 -->
+<div id="menuPopup" class="hidden fixed inset-0 z-50" style="background:rgba(13,20,40,.98);">
   <div class="w-full h-full max-w-md mx-auto flex flex-col p-4">
-    <!-- 헤더 -->
     <div class="flex-shrink-0 flex items-center justify-between mb-3">
       <h3 id="menuPopupName" class="text-white font-bold text-lg"></h3>
-      <button onclick="closeMenuPopup()" class="text-white/40 text-2xl leading-none">✕</button>
+      <button onclick="closeMenuPopup()" class="text-white/40 text-2xl">✕</button>
     </div>
-    <!-- 카테고리 탭 -->
     <div id="menuCatTabs" class="flex gap-2 flex-shrink-0 mb-3 overflow-x-auto pb-1"></div>
-    <!-- 메뉴 그리드 -->
     <div id="menuList" class="flex-1 overflow-y-auto"></div>
-    <!-- 선택된 메뉴 박스 -->
-    <div class="flex-shrink-0 mt-3 rounded-2xl px-4 py-3" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);min-height:52px;">
+    <div class="rounded-2xl px-4 py-3 mt-2 flex-shrink-0" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);min-height:50px;">
       <div class="text-white/30 text-xs mb-2">선택된 메뉴</div>
-      <div id="selectedMenuBar" class="flex flex-wrap gap-2 items-center">
-        <span id="selectedMenuEmpty" class="text-white/20 text-xs">아직 선택 없음</span>
-      </div>
+      <div id="selMenuBar" class="flex flex-wrap gap-2 items-center"><span class="text-white/20 text-xs">아직 선택 없음</span></div>
     </div>
-    <!-- 버튼 -->
     <div class="flex gap-3 flex-shrink-0 pt-3">
       <button onclick="closeMenuPopup()" class="glass flex-1 py-3 rounded-2xl text-white/60 font-medium">취소</button>
-      <button onclick="confirmMenu()" class="btn-primary flex-1 py-3 rounded-2xl text-white font-bold">완료</button>
+      <button onclick="confirmMenu()" class="btn-p flex-1 py-3 rounded-2xl text-white font-bold">완료</button>
     </div>
   </div>
 </div>
 
-<!-- 중/대 사이즈 선택 팝업 -->
-<div id="sizePopup" class="hidden fixed inset-0 z-[200] flex items-center justify-center px-6" style="background:rgba(0,0,0,0.75);">
-  <div class="w-full max-w-sm rounded-3xl p-6" style="background:rgba(13,20,40,0.98);border:1px solid rgba(255,255,255,0.15);animation:fadeIn .25s ease;">
+<!-- 중/대 팝업 -->
+<div id="sizePopup" class="hidden fixed inset-0 z-[200] flex items-center justify-center px-6" style="background:rgba(0,0,0,.75);">
+  <div class="w-full max-w-sm rounded-3xl p-6" style="background:rgba(13,20,40,.98);border:1px solid rgba(255,255,255,.15);">
     <div id="sizePopupName" class="text-white font-bold text-lg text-center mb-5"></div>
     <div class="grid grid-cols-2 gap-3 mb-4">
-      <button id="sizeMiddleBtn" onclick="selectSize('중')"
-        class="py-5 rounded-2xl flex flex-col items-center gap-2 transition-all"
-        style="background:rgba(99,102,241,0.15);border:2px solid rgba(99,102,241,0.4);">
-        <span style="font-size:28px;">🥘</span>
-        <span class="text-white font-bold text-base">중</span>
-        <span id="sizeMiddlePrice" class="text-indigo-300 font-bold text-sm"></span>
+      <button onclick="selectSize('중')" class="py-5 rounded-2xl flex flex-col items-center gap-2" style="background:rgba(99,102,241,.15);border:2px solid rgba(99,102,241,.4);">
+        <span style="font-size:28px;">🥘</span><span class="text-white font-bold text-base">중</span>
+        <span id="sizeMid" class="text-indigo-300 font-bold text-sm"></span>
       </button>
-      <button id="sizeLargeBtn" onclick="selectSize('대')"
-        class="py-5 rounded-2xl flex flex-col items-center gap-2 transition-all"
-        style="background:rgba(16,185,129,0.15);border:2px solid rgba(16,185,129,0.4);">
-        <span style="font-size:28px;">🍲</span>
-        <span class="text-white font-bold text-base">대</span>
-        <span id="sizeLargePrice" class="text-emerald-300 font-bold text-sm"></span>
+      <button onclick="selectSize('대')" class="py-5 rounded-2xl flex flex-col items-center gap-2" style="background:rgba(16,185,129,.15);border:2px solid rgba(16,185,129,.4);">
+        <span style="font-size:28px;">🍲</span><span class="text-white font-bold text-base">대</span>
+        <span id="sizeLg" class="text-emerald-300 font-bold text-sm"></span>
       </button>
     </div>
     <button onclick="closeSizePopup()" class="glass w-full py-3 rounded-2xl text-white/50 font-medium text-sm">취소</button>
   </div>
 </div>
 
-<!-- 저장 완료 토스트 -->
-<div id="toast" class="hidden fixed bottom-8 left-1/2 z-50 px-5 py-3 rounded-2xl text-white text-sm font-medium"
-  style="transform:translateX(-50%);background:rgba(16,185,129,0.9);backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,0.3)">
-  ✅ 주문이 저장되었습니다
-</div>
-
 <!-- 메뉴판 팝업 -->
-<div id="menuBoard" class="hidden fixed inset-0 z-[100] flex items-end justify-center" style="background:rgba(0,0,0,0.85);" onclick="closeMenuBoard()">
-  <div onclick="event.stopPropagation()" class="w-full max-w-md mx-auto rounded-t-3xl overflow-hidden"
-    style="background:#fff8f0;animation:slideUp .3s cubic-bezier(0.34,1.4,0.64,1);max-height:92vh;display:flex;flex-direction:column;">
-
-    <!-- 헤더 -->
+<div id="menuBoard" class="hidden fixed inset-0 z-[100] flex items-end justify-center" style="background:rgba(0,0,0,.85);" onclick="closeMenuBoard()">
+  <div onclick="event.stopPropagation()" class="w-full max-w-md mx-auto rounded-t-3xl overflow-hidden" style="background:#fff8f0;animation:slideUp .3s ease;max-height:92vh;display:flex;flex-direction:column;">
     <div class="px-4 pt-3 pb-2 flex items-center justify-between flex-shrink-0" style="background:#1a5276;">
-      <div>
-        <div class="text-white font-bold text-sm">억순이네</div>
-        <div class="text-blue-200 text-xs">061-464-2008 · 010-2009-8442</div>
-      </div>
-      <button onclick="closeMenuBoard()" class="text-white/70 text-xl leading-none px-1">✕</button>
+      <div><div class="text-white font-bold text-sm">억순이네</div><div class="text-blue-200 text-xs">061-464-2008 · 010-2009-8442</div></div>
+      <button onclick="closeMenuBoard()" class="text-white/70 text-xl px-1">✕</button>
     </div>
-
     <div class="p-3 flex-1 overflow-y-auto">
-
-      <!-- 식사 메뉴 -->
-      <div class="mb-2">
-        <div class="text-center py-1 rounded-lg mb-1 text-white text-sm font-bold" style="background:#27ae60;">식사 메뉴</div>
+      <div class="mb-2"><div class="text-center py-1 rounded-lg mb-1 text-white text-sm font-bold" style="background:#27ae60;">식사 메뉴</div>
         <div class="grid grid-cols-2 gap-x-3">
-          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">순대국밥</span><span class="font-bold text-red-600">8,000</span></div>
-          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">소머리국밥</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">순대국밥</span><span class="font-bold text-red-600">9,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">소머리국밥</span><span class="font-bold text-red-600">9,000</span></div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">섞어국밥</span><span class="font-bold text-red-600">9,000</span></div>
-          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">소내장탕</span><span class="font-bold text-red-600">10,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">소내장탕</span><span class="font-bold text-red-600">9,000</span></div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">머리국밥</span><span class="font-bold text-red-600">9,000</span></div>
-          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">김치찌개</span><span class="font-bold text-red-600">8,000</span></div>
-          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">뼈해장국</span><span class="font-bold text-red-600">10,000</span></div>
-          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">순두부찌개</span><span class="font-bold text-red-600">8,000</span></div>
-          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">사골우거지</span><span class="font-bold text-red-600">10,000</span></div>
-          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">된장찌개</span><span class="font-bold text-red-600">8,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">김치찌개</span><span class="font-bold text-red-600">9,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">뼈해장국</span><span class="font-bold text-red-600">9,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">순두부찌개</span><span class="font-bold text-red-600">9,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">사골우거지</span><span class="font-bold text-red-600">9,000</span></div>
+          <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">된장찌개</span><span class="font-bold text-red-600">9,000</span></div>
         </div>
       </div>
-
-      <!-- 사이드 + 주류 -->
       <div class="grid grid-cols-2 gap-2">
-        <!-- 사이드 -->
-        <div>
-          <div class="text-center py-1 rounded-lg mb-1 text-white text-xs font-bold" style="background:#e67e22;">사이드메뉴</div>
+        <div><div class="text-center py-1 rounded-lg mb-1 text-white text-xs font-bold" style="background:#e67e22;">사이드메뉴</div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">순대</span><span class="font-bold text-red-600">7,000</span></div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">계란찜</span><span class="font-bold text-red-600">3,000</span></div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">계란말이</span><span class="font-bold text-red-600">10,000</span></div>
@@ -377,160 +227,55 @@
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">공기밥</span><span class="font-bold text-red-600">1,000</span></div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">음료수</span><span class="font-bold text-red-600">2,000</span></div>
         </div>
-        <!-- 주류 -->
-        <div>
-          <div class="text-center py-1 rounded-lg mb-1 text-white text-xs font-bold" style="background:#1a5276;">주류</div>
+        <div><div class="text-center py-1 rounded-lg mb-1 text-white text-xs font-bold" style="background:#1a5276;">주류</div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">소주</span><span class="font-bold text-red-600">5,000</span></div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">맥주</span><span class="font-bold text-red-600">5,000</span></div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">막걸리</span><span class="font-bold text-red-600">4,000</span></div>
           <div class="flex justify-between text-xs py-0.5 border-b border-gray-200"><span class="text-gray-800">음료수</span><span class="font-bold text-red-600">2,000</span></div>
         </div>
       </div>
-
-      <!-- 하단 안내 -->
-      <div class="text-center text-xs py-2 mt-2 rounded-lg" style="background:#eaf4fb;color:#1a5276;">
-        📞 061-464-2008 &nbsp;|&nbsp; 📱 010-2009-8442
-      </div>
+      <div class="text-center text-xs py-2 mt-2 rounded-lg" style="background:#eaf4fb;color:#1a5276;">📞 061-464-2008 &nbsp;|&nbsp; 📱 010-2009-8442</div>
     </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div id="toast" class="hidden fixed bottom-8 left-1/2 z-50 px-5 py-3 rounded-2xl text-white text-sm font-medium" style="transform:translateX(-50%);background:rgba(16,185,129,.9);backdrop-filter:blur(12px);">✅ 주문이 저장되었습니다</div>
+
+<!-- 맛평가 화면 -->
+<div id="rvScreen" class="hidden fixed inset-0 z-[150] flex flex-col" style="background:radial-gradient(ellipse at 20% 10%,rgba(239,68,68,.12) 0%,transparent 50%),#0f172a;">
+  <div class="max-w-md mx-auto w-full flex flex-col h-full">
+    <div class="flex items-center justify-between px-4 pt-6 pb-4 flex-shrink-0">
+      <div><div class="text-white font-black text-xl">⭐ 맛 평가</div><div class="text-white/35 text-xs mt-0.5">억순이네 솔직 리뷰</div></div>
+      <button onclick="closeReview()" class="glass w-9 h-9 rounded-xl flex items-center justify-center text-white/40 text-xl">✕</button>
+    </div>
+    <div id="rvList" class="flex-1 overflow-y-auto px-4 pb-6"></div>
+    <div id="rvDetail" class="hidden flex-1 overflow-y-auto px-4 pb-6"></div>
   </div>
 </div>
 
 <script>
 const DELIVERY_FEE = 4500;
-const HISTORY_KEY  = 'meal_order_history';
-const MAX_HISTORY  = 30; // 최대 30건 보관
+const HISTORY_KEY = 'meal_order_history';
+const MAX_HISTORY = 30;
+const JSONBIN_URL = 'https://api.jsonbin.io/v3/b/6a0ad6bbc0954111d83e321a';
+const JSONBIN_KEY = '$2a$10$GwFFzG.nFbT30dkTcB7fa.IVkaAAg9yx9dApX1LwfTVrS2XgkBTGu';
 
-let appData = { settings:{}, members:[], menu:[] };
+let appData = {settings:{},members:[],menu:[]};
 let selectedWorkers = [];
 let orders = {};
 let currentMenuTarget = null;
 let currentMenuSelection = [];
-let viewingHistory = null; // 히스토리 상세 조회 중인 항목
-
-// ── 데이터 로드 ──
-async function loadData() {
-  const paths = ['./data.json', '/order/data.json', 'https://diskpark.github.io/order/data.json'];
-  for (const path of paths) {
-    try {
-      const r = await fetch(path);
-      if (!r.ok) continue;
-      const raw = await r.json();
-      if (raw.restaurant_info) {
-        raw.settings = {
-          sms_recipient:    raw.restaurant_info.mobile?.replace(/-/g,'') || '',
-          restaurant_phone: raw.restaurant_info.tel?.replace(/-/g,'')    || '',
-          restaurant_name:  raw.restaurant_info.name || '식당'
-        };
-      }
-      appData = raw;
-      break;
-    } catch { continue; }
-  }
-  // 메뉴에 id 없으면 자동 부여 (fallback 데이터 처리)
-  if (!appData.members.length) {
-    appData = {
-      settings:{ sms_recipient:'01020098442', restaurant_phone:'0614642008', restaurant_name:'억순이네' },
-      members:[
-        {id:1,name:"이원훈"},{id:2,name:"장형규"},{id:3,name:"조현철"},{id:4,name:"박진호"},{id:5,name:"홍인석"},
-        {id:6,name:"하정남"},{id:7,name:"황정호"},{id:8,name:"김현진"},{id:9,name:"전창범"},{id:10,name:"오규종"},
-        {id:11,name:"김경훈"},{id:12,name:"정철수"},{id:13,name:"황인태"},{id:14,name:"안찬범"},{id:15,name:"김상원"},
-        {id:16,name:"이동현"},{id:17,name:"김태민"},{id:18,name:"김성환"},{id:19,name:"김세영"},{id:20,name:"홍원진"},
-        {id:21,name:"이재일"},{id:22,name:"이준영"},{id:23,name:"김태호"},{id:24,name:"김택성"},{id:25,name:"채관기"},
-        {id:26,name:"김재원"},{id:27,name:"장병숙"},{id:28,name:"윤광덕"},{id:29,name:"박성기"}
-      ],
-      menu:[
-        {id:1,name:"순대국밥",price:9000,category:"식사"},{id:2,name:"섞어국밥",price:9000,category:"식사"},
-        {id:3,name:"머리국밥",price:9000,category:"식사"},{id:4,name:"뼈해장국",price:9000,category:"식사"},
-        {id:5,name:"사골우거지",price:9000,category:"식사"},{id:6,name:"소머리국밥",price:9000,category:"식사"},
-        {id:7,name:"소내장탕",price:9000,category:"식사"},{id:8,name:"김치찌개",price:9000,category:"식사"},
-        {id:9,name:"순두부찌개",price:9000,category:"식사"},{id:10,name:"된장찌개",price:9000,category:"식사"},
-        {id:11,name:"돼지곱창전골",price:22000,price_large:27000,category:"전골류"},
-        {id:12,name:"소곱창전골",price:27000,price_large:32000,category:"전골류"},
-        {id:13,name:"막창전골",price:27000,price_large:32000,category:"전골류"},
-        {id:14,name:"소불고기전골",price:22000,price_large:27000,category:"전골류"},
-        {id:15,name:"부대전골",price:22000,price_large:27000,category:"전골류"},
-        {id:16,name:"감자탕",price:27000,price_large:32000,category:"전골류"},
-        {id:17,name:"순대곱창볶음",price:22000,price_large:27000,category:"볶음류"},
-        {id:18,name:"야채곱창볶음",price:22000,price_large:27000,category:"볶음류"},
-        {id:19,name:"야채막창볶음",price:27000,price_large:32000,category:"볶음류"},
-        {id:20,name:"제육볶음",price:22000,price_large:27000,category:"볶음류"},
-        {id:21,name:"콩나물대패불고기",price:22000,price_large:27000,category:"볶음류"},
-        {id:22,name:"순대",price:7000,category:"사이드"},{id:23,name:"계란찜",price:3000,category:"사이드"},
-        {id:24,name:"계란말이",price:10000,category:"사이드"},{id:25,name:"라면",price:5000,category:"사이드"},
-        {id:26,name:"물냉면",price:7000,category:"사이드"},{id:27,name:"비빔냉면",price:8000,category:"사이드"},
-        {id:28,name:"주먹밥",price:3000,category:"사이드"},{id:29,name:"볶음밥",price:2000,category:"사이드"},
-        {id:30,name:"공기밥",price:1000,category:"사이드"},{id:31,name:"음료수",price:2000,category:"사이드"}
-      ]
-    };
-  }
-  appData.menu.forEach((m,i) => { if (!m.id) m.id = i+1; });
-
-  const s = appData.settings || {};
-  const rname = s.restaurant_name || '식당';
-  document.querySelectorAll('#callBtnLabel,#callBtnLabel2').forEach(el => el.textContent = `${rname} 전화`);
-  document.querySelector('h1') && (document.querySelector('h1').textContent = `${rname} 식사 주문`);
-
-  renderMemberGrid();
-}
-
-// ── 탭 전환 ──
-function switchTab(tab) {
-  ['new','dish','hist'].forEach(t => {
-    document.getElementById(`tab${t.charAt(0).toUpperCase()+t.slice(1)}`)?.classList.toggle('active', t===tab);
-    document.getElementById(`panel${t.charAt(0).toUpperCase()+t.slice(1)}`)?.classList.toggle('hidden', t!==tab);
-  });
-  if(tab==='hist') renderHistory();
-  if(tab==='dish') initDishPanel();
-}
-
-// ── Step 1: 멤버 그리드 (이름만, 체크박스 없음) ──
-function renderMemberGrid() {
-  document.getElementById('memberGrid').innerHTML = appData.members.map(m => `
-    <button id="mb_${m.id}" class="member-btn" onclick="toggleMember(${m.id}, this)">
-      <span class="text-white font-medium text-sm truncate w-full text-center">${m.name}</span>
-    </button>
-  `).join('');
-}
-
-function toggleMember(id, el) {
-  const idx = selectedWorkers.indexOf(id);
-  if (idx > -1) { selectedWorkers.splice(idx,1); el.classList.remove('checked'); }
-  else { selectedWorkers.push(id); el.classList.add('checked'); }
-  document.getElementById('selectedCount').textContent = `${selectedWorkers.length}명`;
-}
-
-function confirmWorkers() {
-  if (!selectedWorkers.length) { alert('근무자를 1명 이상 선택해주세요.'); return; }
-  orders = {};
-  selectedWorkers.forEach(id => orders[id] = []);
-  renderPersonCards();
-  show('step1',false); show('step2',true);
-}
-
-// ── Step 2 ──
-function renderPersonCards() {
-  const workers = sortedWorkers();
-  document.getElementById('step2Sub').textContent = `${workers.length}명 선택됨`;
-  document.getElementById('personCards').innerHTML = workers.map((m,i) => `
-    <div id="card_${m.id}" class="person-card p-4 flex flex-col items-center justify-center" onclick="openMenuPopup(${m.id})" style="animation-delay:${i*0.05}s;min-height:90px;">
-      <div class="text-white font-bold text-base mb-2 text-center">${m.name}</div>
-      <div id="cardMenu_${m.id}" class="text-white/35 text-xs text-center">탭하여 메뉴 선택</div>
-      <div id="cardPrice_${m.id}" class="text-emerald-400 font-bold text-sm mt-1 hidden text-center"></div>
-    </div>
-  `).join('');
-}
-
-// ── 메뉴 팝업 ──
-// ── 메뉴 팝업 ──
-let currentCat = null;
+let isDishMode = false;
+let dishSelection = [];
+let viewingHistory = null;
+let rvMenuData = null;
+let rvCurrentMenu = null;
+let rvStar = 4;
 let sizeTargetItem = null;
+let sizeMode = 'normal';
+let currentCat = null;
 
-const catStyle = {
-  '식사':   { emoji:'🍜', color:'#4ade80', border:'rgba(74,222,128,0.4)',  bg:'rgba(74,222,128,0.08)',  selBg:'rgba(99,102,241,0.45)', tabBg:'rgba(74,222,128,0.2)' },
-  '전골류': { emoji:'🍲', color:'#fb923c', border:'rgba(251,146,60,0.4)', bg:'rgba(251,146,60,0.08)', selBg:'rgba(99,102,241,0.45)', tabBg:'rgba(251,146,60,0.2)' },
-  '볶음류': { emoji:'🥘', color:'#f472b6', border:'rgba(244,114,182,0.4)',bg:'rgba(244,114,182,0.08)',selBg:'rgba(99,102,241,0.45)', tabBg:'rgba(244,114,182,0.2)' },
-  '사이드': { emoji:'🥢', color:'#60a5fa', border:'rgba(96,165,250,0.4)', bg:'rgba(96,165,250,0.08)',  selBg:'rgba(99,102,241,0.45)', tabBg:'rgba(96,165,250,0.2)' }
-};
 const menuEmoji = {
   '순대국밥':'🍜','섞어국밥':'🍜','머리국밥':'🍜','뼈해장국':'🍲','사골우거지':'🥘',
   '소머리국밥':'🍜','소내장탕':'🫕','김치찌개':'🌶️','순두부찌개':'🫕','된장찌개':'🍯',
@@ -539,836 +284,585 @@ const menuEmoji = {
   '순대':'🌯','계란찜':'🥚','계란말이':'🥚','라면':'🍜','물냉면':'🍝','비빔냉면':'🍝',
   '주먹밥':'🍙','볶음밥':'🍚','공기밥':'🍚','음료수':'🥤'
 };
+const catStyle = {
+  '식사':{color:'#4ade80',border:'rgba(74,222,128,.4)',bg:'rgba(74,222,128,.08)',selBg:'rgba(99,102,241,.45)',tabBg:'rgba(74,222,128,.2)'},
+  '전골류':{color:'#fb923c',border:'rgba(251,146,60,.4)',bg:'rgba(251,146,60,.08)',selBg:'rgba(99,102,241,.45)',tabBg:'rgba(251,146,60,.2)'},
+  '볶음류':{color:'#f472b6',border:'rgba(244,114,182,.4)',bg:'rgba(244,114,182,.08)',selBg:'rgba(99,102,241,.45)',tabBg:'rgba(244,114,182,.2)'},
+  '사이드':{color:'#60a5fa',border:'rgba(96,165,250,.4)',bg:'rgba(96,165,250,.08)',selBg:'rgba(99,102,241,.45)',tabBg:'rgba(96,165,250,.2)'}
+};
 
+// ── 데이터 로드 ──
+async function loadData() {
+  try {
+    const r = await fetch('./data.json');
+    if (r.ok) { const raw = await r.json(); if(raw.members) appData = raw; }
+  } catch(e) {}
+  if (!appData.members.length) {
+    appData = {
+      settings:{sms_recipient:'01020098442',restaurant_phone:'0614642008',restaurant_name:'억순이네'},
+      members:[
+        {id:1,name:'이원훈'},{id:2,name:'장형규'},{id:3,name:'조현철'},{id:4,name:'박진호'},{id:5,name:'홍인석'},
+        {id:6,name:'하정남'},{id:7,name:'황정호'},{id:8,name:'김현진'},{id:9,name:'전창범'},{id:10,name:'오규종'},
+        {id:11,name:'김경훈'},{id:12,name:'정철수'},{id:13,name:'황인태'},{id:14,name:'안찬범'},{id:15,name:'김상원'},
+        {id:16,name:'이동현'},{id:17,name:'김태민'},{id:18,name:'김성환'},{id:19,name:'김세영'},{id:20,name:'홍원진'},
+        {id:21,name:'이재일'},{id:22,name:'이준영'},{id:23,name:'김태호'},{id:24,name:'김택성'},{id:25,name:'채관기'},
+        {id:26,name:'김재원'},{id:27,name:'장병숙'},{id:28,name:'윤광덕'},{id:29,name:'박성기'}
+      ],
+      menu:[
+        {id:1,name:'순대국밥',price:9000,category:'식사'},{id:2,name:'섞어국밥',price:9000,category:'식사'},
+        {id:3,name:'머리국밥',price:9000,category:'식사'},{id:4,name:'뼈해장국',price:9000,category:'식사'},
+        {id:5,name:'사골우거지',price:9000,category:'식사'},{id:6,name:'소머리국밥',price:9000,category:'식사'},
+        {id:7,name:'소내장탕',price:9000,category:'식사'},{id:8,name:'김치찌개',price:9000,category:'식사'},
+        {id:9,name:'순두부찌개',price:9000,category:'식사'},{id:10,name:'된장찌개',price:9000,category:'식사'},
+        {id:11,name:'돼지곱창전골',price:22000,price_large:27000,category:'전골류'},
+        {id:12,name:'소곱창전골',price:27000,price_large:32000,category:'전골류'},
+        {id:13,name:'막창전골',price:27000,price_large:32000,category:'전골류'},
+        {id:14,name:'소불고기전골',price:22000,price_large:27000,category:'전골류'},
+        {id:15,name:'부대전골',price:22000,price_large:27000,category:'전골류'},
+        {id:16,name:'감자탕',price:27000,price_large:32000,category:'전골류'},
+        {id:17,name:'순대곱창볶음',price:22000,price_large:27000,category:'볶음류'},
+        {id:18,name:'야채곱창볶음',price:22000,price_large:27000,category:'볶음류'},
+        {id:19,name:'야채막창볶음',price:27000,price_large:32000,category:'볶음류'},
+        {id:20,name:'제육볶음',price:22000,price_large:27000,category:'볶음류'},
+        {id:21,name:'콩나물대패불고기',price:22000,price_large:27000,category:'볶음류'},
+        {id:22,name:'순대',price:7000,category:'사이드'},{id:23,name:'계란찜',price:3000,category:'사이드'},
+        {id:24,name:'계란말이',price:10000,category:'사이드'},{id:25,name:'라면',price:5000,category:'사이드'},
+        {id:26,name:'물냉면',price:7000,category:'사이드'},{id:27,name:'비빔냉면',price:8000,category:'사이드'},
+        {id:28,name:'주먹밥',price:3000,category:'사이드'},{id:29,name:'볶음밥',price:2000,category:'사이드'},
+        {id:30,name:'공기밥',price:1000,category:'사이드'},{id:31,name:'음료수',price:2000,category:'사이드'}
+      ]
+    };
+  }
+  appData.menu.forEach((m,i)=>{ if(!m.id) m.id=i+1; });
+  const s = appData.settings||{};
+  const rn = s.restaurant_name||'억순이네';
+  document.getElementById('appTitle').textContent = rn+' 식사 주문';
+  document.getElementById('callLabel').textContent = rn+' 전화';
+  document.getElementById('callLabel2').textContent = rn+' 전화';
+  renderMemberGrid();
+}
+
+// ── 탭 ──
+function switchTab(t) {
+  ['New','Dish','Hist'].forEach(x => {
+    document.getElementById('tab'+x).classList.toggle('active', x.toLowerCase()===t);
+    document.getElementById('panel'+x).classList.toggle('hidden', x.toLowerCase()!==t);
+  });
+  if (t==='hist') renderHistory();
+  if (t==='dish') initDishPanel();
+}
+
+// ── STEP 1 ──
+function renderMemberGrid() {
+  document.getElementById('memberGrid').innerHTML = appData.members.map(m =>
+    '<button id="mb_'+m.id+'" class="mb-btn" onclick="toggleMember('+m.id+',this)"><span class="text-white font-medium text-sm">'+m.name+'</span></button>'
+  ).join('');
+}
+function toggleMember(id, el) {
+  const idx = selectedWorkers.indexOf(id);
+  if (idx>-1) { selectedWorkers.splice(idx,1); el.classList.remove('on'); }
+  else { selectedWorkers.push(id); el.classList.add('on'); }
+  document.getElementById('selCount').textContent = selectedWorkers.length+'명';
+}
+function confirmWorkers() {
+  if (!selectedWorkers.length) { alert('근무자를 선택해주세요.'); return; }
+  orders = {}; selectedWorkers.forEach(id=>orders[id]=[]);
+  renderPersonCards(); show('step1',false); show('step2',true);
+}
+
+// ── STEP 2 ──
+function renderPersonCards() {
+  const ws = sortedWorkers();
+  document.getElementById('step2Sub').textContent = ws.length+'명 선택됨';
+  document.getElementById('personCards').innerHTML = ws.map((m,i) =>
+    '<div id="card_'+m.id+'" class="p-card p-4 flex flex-col items-center justify-center" style="min-height:90px;animation-delay:'+i*.05+'s" onclick="openMenuPopup('+m.id+')">'
+    +'<div class="text-white font-bold text-base mb-2 text-center">'+m.name+'</div>'
+    +'<div id="cm_'+m.id+'" class="text-white/35 text-xs text-center">탭하여 메뉴 선택</div>'
+    +'<div id="cp_'+m.id+'" class="text-emerald-400 font-bold text-sm mt-1 hidden text-center"></div>'
+    +'</div>'
+  ).join('');
+}
+
+// ── 메뉴 팝업 ──
 function openMenuPopup(memberId) {
   currentMenuTarget = memberId;
   currentMenuSelection = [...(orders[memberId]||[])];
   const m = appData.members.find(x=>x.id===memberId);
-  document.getElementById('menuPopupName').textContent = `${m.name} 메뉴 선택`;
-
-  // 카테고리 탭 렌더
+  document.getElementById('menuPopupName').textContent = m.name+' 메뉴 선택';
   const cats = [...new Set(appData.menu.map(x=>x.category))];
   currentCat = cats[0];
-  const tabEl = document.getElementById('menuCatTabs');
-  tabEl.innerHTML = cats.map(cat => {
-    const cs = catStyle[cat]||{emoji:'🍽️',color:'#fff',tabBg:'rgba(255,255,255,0.1)'};
-    return `<button id="tab_${cat}" onclick="switchMenuCat('${cat}')"
-      style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;
-      color:${cat===currentCat?'white':cs.color};
-      background:${cat===currentCat?cs.tabBg:'rgba(255,255,255,0.06)'};
-      border:1.5px solid ${cat===currentCat?cs.border:'rgba(255,255,255,0.1)'};
-      transition:all .2s;">
-      ${cs.emoji} ${cat}
-    </button>`;
+  // 탭
+  document.getElementById('menuCatTabs').innerHTML = cats.map(cat => {
+    const cs = catStyle[cat]||{color:'#fff',tabBg:'rgba(255,255,255,.1)',border:'rgba(255,255,255,.2)'};
+    return '<button id="mct_'+cat+'" onclick="switchMenuCat(\''+cat+'\')" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:700;color:'+(cat===currentCat?'white':cs.color)+';background:'+(cat===currentCat?cs.tabBg:'rgba(255,255,255,.06)')+';border:1.5px solid '+(cat===currentCat?cs.border:'rgba(255,255,255,.1)')+';transition:all .2s;">'+cs.emoji+' '+cat+'</button>';
   }).join('');
-
   renderMenuGrid(currentCat);
   document.getElementById('menuPopup').classList.remove('hidden');
 }
-
 function switchMenuCat(cat) {
   currentCat = cat;
   const cats = [...new Set(appData.menu.map(x=>x.category))];
   cats.forEach(c => {
-    const btn = document.getElementById(`tab_${c}`);
-    const cs = catStyle[c]||{color:'#fff',tabBg:'rgba(255,255,255,0.1)',border:'rgba(255,255,255,0.2)'};
-    if(c===cat){
-      btn.style.color='white'; btn.style.background=cs.tabBg; btn.style.borderColor=cs.border;
-    } else {
-      btn.style.color=cs.color; btn.style.background='rgba(255,255,255,0.06)'; btn.style.borderColor='rgba(255,255,255,0.1)';
-    }
+    const cs = catStyle[c]||{color:'#fff',tabBg:'rgba(255,255,255,.1)',border:'rgba(255,255,255,.2)'};
+    const btn = document.getElementById('mct_'+c);
+    if (!btn) return;
+    btn.style.color = c===cat?'white':cs.color;
+    btn.style.background = c===cat?cs.tabBg:'rgba(255,255,255,.06)';
+    btn.style.borderColor = c===cat?cs.border:'rgba(255,255,255,.1)';
   });
   renderMenuGrid(cat);
 }
-
 function renderMenuGrid(cat) {
-  const cs = catStyle[cat]||{emoji:'🍽️',color:'#fff',border:'rgba(255,255,255,0.2)',bg:'rgba(255,255,255,0.06)',selBg:'rgba(99,102,241,0.45)'};
+  const cs = catStyle[cat]||{color:'#fff',border:'rgba(255,255,255,.2)',bg:'rgba(255,255,255,.06)',selBg:'rgba(99,102,241,.45)'};
   const hasSizes = cat==='전골류'||cat==='볶음류';
-  // 전골/볶음 탭엔 공기밥 카드도 추가
   const baseItems = appData.menu.filter(x=>x.category===cat);
   const riceItem = appData.menu.find(x=>x.name==='공기밥');
   const items = hasSizes ? [...baseItems, riceItem].filter(Boolean) : baseItems;
   const cols = hasSizes ? 3 : 4;
   const listEl = document.getElementById('menuList');
-
-  listEl.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;">
-      ${items.map(item=>{
-        const isQtyItem = item.name==='공기밥';
-        const selItem = currentMenuSelection.find(s=>s.id===item.id);
-        const qty = selItem?.qty||0;
-        const sel = isQtyItem
-          ? qty>0
-          : currentMenuSelection.some(s=>s.id===item.id||s._parentId===item.id);
-        const priceLabel = isQtyItem
-          ? `<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:4px;">${item.price.toLocaleString()}원</div>
-             <div style="display:flex;align-items:center;justify-content:center;gap:8px;" onclick="event.stopPropagation()">
-               <button onclick="changeQty(${item.id},-1,event)" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.15);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">−</button>
-               <span style="color:${qty>0?'#6ee7b7':'rgba(255,255,255,0.4)'};font-weight:700;font-size:14px;min-width:18px;text-align:center;">${qty}</span>
-               <button onclick="changeQty(${item.id},1,event)" style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.6);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">+</button>
-             </div>`
-          : hasSizes
-            ? `<div style="font-size:11px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.45)'};">중 ${item.price.toLocaleString()}</div>
-               <div style="font-size:11px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.3)'};">대 ${item.price_large?.toLocaleString()}</div>`
-            : `<div style="font-size:11px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.4)'};">${item.price.toLocaleString()}원</div>`;
-        const em = menuEmoji[item.name]||'🍽️';
-        return `<div class="kiosk-item" data-menu-id="${item.id}" data-has-size="${hasSizes&&!isQtyItem}" data-is-qty="${isQtyItem}"
-          style="border-radius:14px;padding:12px 4px 10px;text-align:center;cursor:pointer;
-          touch-action:manipulation;user-select:none;-webkit-user-select:none;
-          background:${sel?(isQtyItem?'rgba(96,165,250,0.25)':cs.selBg):cs.bg};
-          border:2px solid ${sel?(isQtyItem?'rgba(96,165,250,0.8)':'rgba(99,102,241,0.9)'):cs.border};
-          transition:all .15s;">
-          <div style="font-size:${hasSizes?'26px':'28px'};line-height:1;margin-bottom:6px;">${em}</div>
-          <div style="font-size:12px;font-weight:700;color:${sel?'#c7d2fe':'rgba(255,255,255,0.9)'};margin-bottom:4px;line-height:1.3;">${item.name}</div>
-          ${priceLabel}
-        </div>`;
-      }).join('')}
-    </div>`;
-
-  listEl.onclick = e => {
+  listEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat('+cols+',1fr);gap:8px;">'
+    + items.map(item => {
+      const isQty = item.name==='공기밥';
+      const selItem = currentMenuSelection.find(s=>s.id===item.id);
+      const qty = selItem&&selItem.qty ? selItem.qty : 0;
+      const sel = isQty ? qty>0 : currentMenuSelection.some(s=>s.id===item.id||s._parentId===item.id);
+      const em = menuEmoji[item.name]||'🍽️';
+      let priceHtml = '';
+      if (isQty) {
+        priceHtml = '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:4px;">'+item.price.toLocaleString()+'원</div>'
+          +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;" onclick="event.stopPropagation()">'
+          +'<button onclick="changeQty('+item.id+',-1,event)" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.15);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">−</button>'
+          +'<span style="color:'+(qty>0?'#6ee7b7':'rgba(255,255,255,.4)')+';font-weight:700;font-size:14px;min-width:18px;text-align:center;">'+qty+'</span>'
+          +'<button onclick="changeQty('+item.id+',1,event)" style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,.6);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">+</button>'
+          +'</div>';
+      } else if (hasSizes && item.price_large) {
+        priceHtml = '<div style="font-size:11px;color:'+(sel?'#6ee7b7':'rgba(255,255,255,.45)')+';">중 '+item.price.toLocaleString()+'</div>'
+          +'<div style="font-size:11px;color:'+(sel?'#6ee7b7':'rgba(255,255,255,.3)')+';">대 '+item.price_large.toLocaleString()+'</div>';
+      } else {
+        priceHtml = '<div style="font-size:11px;color:'+(sel?'#6ee7b7':'rgba(255,255,255,.4)')+';">'+item.price.toLocaleString()+'원</div>';
+      }
+      return '<div class="kiosk-item" data-mid="'+item.id+'" data-hs="'+(hasSizes&&!isQty)+'" data-iq="'+isQty+'" style="background:'+(sel?(isQty?'rgba(96,165,250,.25)':cs.selBg):cs.bg)+';border:2px solid '+(sel?(isQty?'rgba(96,165,250,.8)':'rgba(99,102,241,.9)'):cs.border)+';">'
+        +'<div style="font-size:26px;line-height:1;margin-bottom:6px;">'+em+'</div>'
+        +'<div style="font-size:12px;font-weight:700;color:'+(sel?'#c7d2fe':'rgba(255,255,255,.9)')+';margin-bottom:4px;line-height:1.3;">'+item.name+'</div>'
+        +priceHtml+'</div>';
+    }).join('')+'</div>';
+  listEl.onclick = function(e) {
     const el = e.target.closest('.kiosk-item'); if(!el) return;
-    if(el.dataset.isQty==='true') return; // 공기밥은 +/- 버튼으로만 처리
-    const menuId = parseInt(el.dataset.menuId);
-    const hasSz = el.dataset.hasSize==='true';
+    if (el.dataset.iq==='true') return;
+    const menuId = parseInt(el.dataset.mid);
+    const hasSz = el.dataset.hs==='true';
     const menuData = appData.menu.find(x=>x.id===menuId);
-
-    if(hasSz) {
+    if (hasSz) {
       const idx = currentMenuSelection.findIndex(x=>x.id===menuId||x._parentId===menuId);
-      if(idx>-1){ currentMenuSelection.splice(idx,1); renderMenuGrid(currentCat); updateSelectedBar(); return; }
-      openSizePopup(menuData);
+      if (idx>-1) { currentMenuSelection.splice(idx,1); renderMenuGrid(currentCat); updateSelBar(); return; }
+      sizeMode='normal'; openSizePopup(menuData);
     } else {
       const idx = currentMenuSelection.findIndex(x=>x.id===menuId);
-      const cs2 = catStyle[menuData.category]||{border:'rgba(255,255,255,0.2)',bg:'rgba(255,255,255,0.06)'};
-      if(idx>-1){
-        currentMenuSelection.splice(idx,1);
-        el.style.background=cs2.bg; el.style.borderColor=cs2.border;
-        el.children[1].style.color='rgba(255,255,255,0.9)';
-        el.children[2].style.color='rgba(255,255,255,0.4)';
-      } else {
-        currentMenuSelection.push(menuData);
-        el.style.background=cs2.selBg||'rgba(99,102,241,0.45)'; el.style.borderColor='rgba(99,102,241,0.9)';
-        el.children[1].style.color='#c7d2fe';
-        el.children[2].style.color='#6ee7b7';
-      }
-      updateSelectedBar();
+      if (idx>-1) currentMenuSelection.splice(idx,1);
+      else currentMenuSelection.push(menuData);
+      renderMenuGrid(currentCat); updateSelBar();
     }
   };
-  updateSelectedBar();
+  updateSelBar();
 }
-
-function updateSelectedBar() {
-  const bar = document.getElementById('selectedMenuBar');
-  if(!currentMenuSelection.length){
-    bar.innerHTML = '<span id="selectedMenuEmpty" class="text-white/20 text-xs">아직 선택 없음</span>';
-    return;
-  }
-  const total = currentMenuSelection.reduce((s,x)=>s+x.price,0);
-  bar.innerHTML = currentMenuSelection.map(item=>`
-    <div onclick="removeSelectedItem(${item.id})"
-      style="display:inline-flex;align-items:center;gap:4px;
-      background:rgba(99,102,241,0.35);border:1.5px solid rgba(99,102,241,0.7);
-      border-radius:20px;padding:5px 12px;cursor:pointer;
-      font-size:13px;color:#e0e7ff;font-weight:600;white-space:nowrap;
-      touch-action:manipulation;">
-      ${item.name}
-      <span style="color:rgba(255,255,255,0.35);font-size:15px;line-height:1;margin-left:2px;">×</span>
-    </div>
-  `).join('')
-  + `<span style="margin-left:auto;color:#6ee7b7;font-size:13px;font-weight:700;white-space:nowrap;">${total.toLocaleString()}원</span>`;
-}
-
-function removeSelectedItem(id) {
-  currentMenuSelection = currentMenuSelection.filter(x=>x.id!==id);
-  renderMenuGrid(currentCat);
-  updateSelectedBar();
-}
-
 function changeQty(menuId, delta, e) {
   if(e) e.stopPropagation();
   const menuData = appData.menu.find(x=>x.id===menuId);
   const idx = currentMenuSelection.findIndex(x=>x.id===menuId);
-  if(idx>-1){
-    currentMenuSelection[idx].qty = Math.max(0, currentMenuSelection[idx].qty+delta);
-    if(currentMenuSelection[idx].qty===0) currentMenuSelection.splice(idx,1);
-  } else if(delta>0) {
-    currentMenuSelection.push({...menuData, qty:1});
+  if (idx>-1) {
+    currentMenuSelection[idx].qty = Math.max(0,(currentMenuSelection[idx].qty||1)+delta);
+    if (currentMenuSelection[idx].qty===0) currentMenuSelection.splice(idx,1);
+  } else if (delta>0) {
+    currentMenuSelection.push({...menuData,qty:1});
   }
-  renderMenuGrid(currentCat);
-  updateSelectedBar();
+  renderMenuGrid(currentCat); updateSelBar();
+}
+function updateSelBar() {
+  const bar = document.getElementById('selMenuBar');
+  if (!currentMenuSelection.length) { bar.innerHTML='<span class="text-white/20 text-xs">아직 선택 없음</span>'; return; }
+  const total = currentMenuSelection.reduce((s,x)=>s+(x.price*(x.qty||1)),0);
+  bar.innerHTML = currentMenuSelection.map(item=>
+    '<div onclick="removeSelItem('+item.id+')" style="display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,.35);border:1.5px solid rgba(99,102,241,.7);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px;color:#e0e7ff;font-weight:600;white-space:nowrap;touch-action:manipulation;">'
+    +item.name+(item.qty&&item.qty>1?' ×'+item.qty:'')
+    +'<span style="color:rgba(255,255,255,.35);font-size:15px;margin-left:2px;">×</span></div>'
+  ).join('')+'<span style="margin-left:auto;color:#6ee7b7;font-size:13px;font-weight:700;white-space:nowrap;">'+total.toLocaleString()+'원</span>';
+}
+function removeSelItem(id) {
+  currentMenuSelection = currentMenuSelection.filter(x=>x.id!==id);
+  renderMenuGrid(currentCat); updateSelBar();
+}
+function closeMenuPopup() { document.getElementById('menuPopup').classList.add('hidden'); }
+function confirmMenu() {
+  orders[currentMenuTarget] = [...currentMenuSelection]; updateCard(currentMenuTarget); closeMenuPopup();
+}
+function updateCard(mid) {
+  const items = orders[mid];
+  const card=document.getElementById('card_'+mid);
+  const cm=document.getElementById('cm_'+mid);
+  const cp=document.getElementById('cp_'+mid);
+  if (!items.length) { cm.textContent='탭하여 메뉴 선택'; cm.className='text-white/35 text-xs text-center'; cp.classList.add('hidden'); card.classList.remove('has-menu'); }
+  else { cm.textContent=items.map(x=>x.name).join(' · '); cm.className='text-white/65 text-xs text-center leading-relaxed'; cp.textContent=items.reduce((s,x)=>s+(x.price*(x.qty||1)),0).toLocaleString()+'원'; cp.classList.remove('hidden'); card.classList.add('has-menu'); }
 }
 
 // ── 사이즈 팝업 ──
 function openSizePopup(item) {
   sizeTargetItem = item;
   document.getElementById('sizePopupName').textContent = item.name;
-  document.getElementById('sizeMiddlePrice').textContent = item.price.toLocaleString()+'원';
-  document.getElementById('sizeLargePrice').textContent = item.price_large.toLocaleString()+'원';
-  document.getElementById('sizePopup').dataset.mode = 'normal';
+  document.getElementById('sizeMid').textContent = item.price.toLocaleString()+'원';
+  document.getElementById('sizeLg').textContent = item.price_large.toLocaleString()+'원';
   document.getElementById('sizePopup').classList.remove('hidden');
 }
-
-function closeSizePopup() {
-  document.getElementById('sizePopup').classList.add('hidden');
-  sizeTargetItem = null;
-}
-
+function closeSizePopup() { document.getElementById('sizePopup').classList.add('hidden'); sizeTargetItem=null; }
 function selectSize(size) {
-  if(!sizeTargetItem) return;
+  if (!sizeTargetItem) return;
   const price = size==='중' ? sizeTargetItem.price : sizeTargetItem.price_large;
-  const item = {
-    id: sizeTargetItem.id * 1000 + (size==='중'?1:2),
-    _parentId: sizeTargetItem.id,
-    name: `${sizeTargetItem.name}(${size})`,
-    price, qty: 1,
-    category: sizeTargetItem.category
-  };
-  const mode = document.getElementById('sizePopup').dataset.mode;
-  if(mode==='dish') {
-    dishSelection = dishSelection.filter(x=>x._parentId!==sizeTargetItem.id);
-    dishSelection.push(item);
-    closeSizePopup();
-    renderDishAll();
-    updateDishBar();
+  const item = {id:sizeTargetItem.id*1000+(size==='중'?1:2),_parentId:sizeTargetItem.id,name:sizeTargetItem.name+'('+size+')',price,qty:1,category:sizeTargetItem.category};
+  closeSizePopup();
+  if (sizeMode==='dish') {
+    dishSelection = dishSelection.filter(x=>x._parentId!==item._parentId);
+    dishSelection.push(item); renderDishAll(); updateDishBar();
   } else {
-    currentMenuSelection = currentMenuSelection.filter(x=>x._parentId!==sizeTargetItem.id);
-    currentMenuSelection.push(item);
-    closeSizePopup();
-    renderMenuGrid(currentCat);
-    updateSelectedBar();
-  }
-}
-function closeMenuPopup() { document.getElementById('menuPopup').classList.add('hidden'); }
-function confirmMenu() { orders[currentMenuTarget]=[...currentMenuSelection]; updateCard(currentMenuTarget); closeMenuPopup(); }
-
-function updateCard(memberId) {
-  const items = orders[memberId];
-  const card=document.getElementById(`card_${memberId}`);
-  const menuEl=document.getElementById(`cardMenu_${memberId}`);
-  const priceEl=document.getElementById(`cardPrice_${memberId}`);
-  if(!items.length){
-    menuEl.textContent='탭하여 메뉴 선택'; menuEl.className='text-white/35 text-xs';
-    priceEl.classList.add('hidden'); card.classList.remove('has-menu');
-  } else {
-    menuEl.textContent=items.map(x=>x.name).join(' · ');
-    menuEl.className='text-white/65 text-xs leading-relaxed';
-    priceEl.textContent=items.reduce((s,x)=>s+x.price,0).toLocaleString()+'원';
-    priceEl.classList.remove('hidden'); card.classList.add('has-menu');
+    currentMenuSelection = currentMenuSelection.filter(x=>x._parentId!==item._parentId);
+    currentMenuSelection.push(item); renderMenuGrid(currentCat); updateSelBar();
   }
 }
 
-// ── Step 3 ──
+// ── STEP 3 ──
 function goToSummary() {
-  const workers = sortedWorkers();
-  let subtotal=0;
-  document.getElementById('summaryList').innerHTML = workers.map(m=>{
-    const items=orders[m.id]||[]; const amt=items.reduce((s,x)=>s+x.price,0); subtotal+=amt;
-    return `<div class="summary-row">
-      <div class="text-white font-medium text-sm">${m.name}</div>
-      <div class="text-white/45 text-xs leading-tight">${items.length?items.map(x=>x.name).join(', '):'—'}</div>
-      <div class="text-white/75 text-sm text-right">${amt?amt.toLocaleString()+'원':'—'}</div>
-    </div>`;
+  const ws = sortedWorkers(); let sub=0;
+  document.getElementById('sumList').innerHTML = ws.map(m => {
+    const items=orders[m.id]||[]; const amt=items.reduce((s,x)=>s+(x.price*(x.qty||1)),0); sub+=amt;
+    return '<div class="sum-row"><div class="text-white font-medium text-sm">'+m.name+'</div><div class="text-white/45 text-xs leading-tight">'+(items.length?items.map(x=>x.name).join(', '):'—')+'</div><div class="text-white/75 text-sm text-right">'+(amt?amt.toLocaleString()+'원':'—')+'</div></div>';
   }).join('');
-  document.getElementById('subtotalAmt').textContent = subtotal.toLocaleString()+'원';
-  document.getElementById('totalAmt').textContent = (subtotal+DELIVERY_FEE).toLocaleString()+'원';
-  show('step2',false); show('step3',true);
-  showGuide();
+  document.getElementById('subAmt').textContent = sub.toLocaleString()+'원';
+  document.getElementById('totalAmt').textContent = (sub+DELIVERY_FEE).toLocaleString()+'원';
+  show('step2',false); show('step3',true); showGuide();
 }
 
 // ── SMS ──
 function buildSMSBody() {
-  const menuCount={};
-  sortedWorkers().forEach(m=>(orders[m.id]||[]).forEach(item=>{
-    menuCount[item.name]=(menuCount[item.name]||0)+1;
-  }));
-  const subtotal=sortedWorkers().reduce((s,m)=>s+(orders[m.id]||[]).reduce((a,x)=>a+x.price,0),0);
+  const mc={};
+  sortedWorkers().forEach(m=>(orders[m.id]||[]).forEach(item=>{ mc[item.name]=(mc[item.name]||0)+(item.qty||1); }));
+  const sub=sortedWorkers().reduce((s,m)=>s+(orders[m.id]||[]).reduce((a,x)=>a+(x.price*(x.qty||1)),0),0);
   let body='안녕하세요 대양입니다\n\n';
-  Object.entries(menuCount).forEach(([name,cnt])=>{ body+=`${name} ${cnt}개\n`; });
-  const total=Object.values(menuCount).reduce((a,b)=>a+b,0);
-  body+=`\n총 ${total}개`;
-  body+=`\n금액: ${subtotal.toLocaleString()}원 + 배달비 ${DELIVERY_FEE.toLocaleString()}원`;
-  body+=`\n합계: ${(subtotal+DELIVERY_FEE).toLocaleString()}원`;
+  Object.entries(mc).forEach(([n,c])=>{ body+=n+' '+c+'개\n'; });
+  body+='\n총 '+Object.values(mc).reduce((a,b)=>a+b,0)+'개';
+  body+='\n금액: '+sub.toLocaleString()+'원 + 배달비 '+DELIVERY_FEE.toLocaleString()+'원';
+  body+='\n합계: '+(sub+DELIVERY_FEE).toLocaleString()+'원';
   return body;
 }
-
+function buildDishSMSBody() {
+  let body='안녕하세요 대양입니다\n\n';
+  dishSelection.forEach(item=>{ body+=item.name+' '+(item.qty||1)+'개\n'; });
+  const sub=dishSelection.reduce((s,x)=>s+(x.price*(x.qty||1)),0);
+  body+='\n합계: '+(sub+DELIVERY_FEE).toLocaleString()+'원';
+  return body;
+}
 function sendSMS() {
-  const recipient=(appData.settings||{}).sms_recipient||'';
-  if(isDishMode) {
-    autoSaveDishOrder();
-    const a=document.createElement('a');
-    a.href=`sms:${recipient}?body=${encodeURIComponent(buildDishSMSBody())}`;
-    a.target='_blank'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  } else {
-    autoSaveOrder();
-    const a=document.createElement('a');
-    a.href=`sms:${recipient}?body=${encodeURIComponent(buildSMSBody())}`;
-    a.target='_blank'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  }
+  const rec=(appData.settings||{}).sms_recipient||'';
+  const body = isDishMode ? buildDishSMSBody() : buildSMSBody();
+  const a=document.createElement('a'); a.href='sms:'+rec+'?body='+encodeURIComponent(body); a.target='_blank'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  isDishMode ? autoSaveDishOrder() : autoSaveOrder();
+}
+function callRestaurant() {
+  const ph=(appData.settings||{}).restaurant_phone||'';
+  if(!ph){alert('전화번호가 없습니다.');return;}
+  window.location.href='tel:'+ph;
+}
+function resendSMS() {
+  if(!viewingHistory) return;
+  const rec=(appData.settings||{}).sms_recipient||'';
+  const a=document.createElement('a'); a.href='sms:'+rec+'?body='+encodeURIComponent(viewingHistory.smsBody); a.target='_blank'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
-function autoSaveDishOrder() {
-  const now=new Date();
-  const hour=now.getHours();
-  let mealType='기타';
-  if(hour>=11&&hour<14) mealType='점심';
-  else if(hour>=17&&hour<21) mealType='저녁';
-  const subtotal=dishSelection.reduce((s,x)=>s+(x.price*x.qty),0);
-  const menuCount={};
-  dishSelection.forEach(x=>{ menuCount[x.name]=(menuCount[x.name]||0)+x.qty; });
-  const record={
-    id:now.getTime(),
-    date:now.toLocaleDateString('ko-KR',{year:'numeric',month:'numeric',day:'numeric',weekday:'short'}),
-    time:now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),
-    mealType, workers:['요리주문'],
-    orders:{'요리주문':dishSelection.map(x=>x.name)},
-    menuCount, subtotal,
-    total:subtotal+DELIVERY_FEE,
-    smsBody:buildDishSMSBody()
-  };
-  const hist=getHistory(); hist.unshift(record);
-  if(hist.length>MAX_HISTORY) hist.pop();
-  localStorage.setItem(HISTORY_KEY,JSON.stringify(hist));
-  const toast=document.getElementById('toast');
-  toast.classList.remove('hidden');
-  setTimeout(()=>toast.classList.add('hidden'),2500);
-}
-
-// ── 자동 저장 (시간 기준 식사 구분) ──
+// ── 자동저장 ──
 function autoSaveOrder() {
-  const now = new Date();
-  const hour = now.getHours();
-  let mealType = '기타';
-  if (hour>=11 && hour<14) mealType='점심';
-  else if (hour>=17 && hour<21) mealType='저녁';
-
-  const workers=sortedWorkers();
-  const subtotal=workers.reduce((s,m)=>s+(orders[m.id]||[]).reduce((a,x)=>a+x.price,0),0);
-  const menuCount={};
-  workers.forEach(m=>(orders[m.id]||[]).forEach(item=>{
-    menuCount[item.name]=(menuCount[item.name]||0)+1;
-  }));
-
-  const record = {
-    id: now.getTime(),
-    date: now.toLocaleDateString('ko-KR',{year:'numeric',month:'numeric',day:'numeric',weekday:'short'}),
-    time: now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),
-    mealType,
-    workers: workers.map(m=>m.name),
-    orders: workers.reduce((obj,m)=>{ obj[m.name]=(orders[m.id]||[]).map(x=>x.name); return obj; },{}),
-    menuCount,
-    subtotal,
-    total: subtotal+DELIVERY_FEE,
-    smsBody: buildSMSBody()
-  };
-
-  const hist=getHistory();
-  hist.unshift(record);
-  if(hist.length>MAX_HISTORY) hist.pop();
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
-
-  // 토스트 표시
-  const toast=document.getElementById('toast');
-  toast.classList.remove('hidden');
-  setTimeout(()=>toast.classList.add('hidden'), 2500);
+  const now=new Date(); const h=now.getHours();
+  const mealType=h>=11&&h<14?'점심':h>=17&&h<21?'저녁':'기타';
+  const ws=sortedWorkers(); const sub=ws.reduce((s,m)=>s+(orders[m.id]||[]).reduce((a,x)=>a+(x.price*(x.qty||1)),0),0);
+  const mc={}; ws.forEach(m=>(orders[m.id]||[]).forEach(x=>{mc[x.name]=(mc[x.name]||0)+(x.qty||1);}));
+  const rec={id:now.getTime(),date:now.toLocaleDateString('ko-KR',{year:'numeric',month:'numeric',day:'numeric',weekday:'short'}),time:now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),mealType,workers:ws.map(m=>m.name),orders:ws.reduce((obj,m)=>{obj[m.name]=(orders[m.id]||[]).map(x=>x.name);return obj;},{}),menuCount:mc,subtotal:sub,total:sub+DELIVERY_FEE,smsBody:buildSMSBody()};
+  const hist=getHistory(); hist.unshift(rec); if(hist.length>MAX_HISTORY) hist.pop();
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(hist));
+  const t=document.getElementById('toast'); t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),2500);
 }
-
-// ── 히스토리 초기화 ──
-function clearHistory() {
-  if (!confirm('주문 내역을 모두 삭제할까요?')) return;
-  localStorage.removeItem(HISTORY_KEY);
-  renderHistory();
+function autoSaveDishOrder() {
+  const now=new Date(); const h=now.getHours();
+  const mealType=h>=11&&h<14?'점심':h>=17&&h<21?'저녁':'기타';
+  const sub=dishSelection.reduce((s,x)=>s+(x.price*(x.qty||1)),0);
+  const mc={}; dishSelection.forEach(x=>{mc[x.name]=(mc[x.name]||0)+(x.qty||1);});
+  const rec={id:now.getTime(),date:now.toLocaleDateString('ko-KR',{year:'numeric',month:'numeric',day:'numeric',weekday:'short'}),time:now.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}),mealType,workers:['요리주문'],orders:{'요리주문':dishSelection.map(x=>x.name)},menuCount:mc,subtotal:sub,total:sub+DELIVERY_FEE,smsBody:buildDishSMSBody()};
+  const hist=getHistory(); hist.unshift(rec); if(hist.length>MAX_HISTORY) hist.pop();
+  localStorage.setItem(HISTORY_KEY,JSON.stringify(hist));
+  const t=document.getElementById('toast'); t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'),2500);
 }
 
 // ── 히스토리 ──
-function getHistory() {
-  try { return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); } catch{ return []; }
-}
-
+function getHistory() { try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');}catch{return[];} }
+function clearHistory() { if(!confirm('주문 내역을 모두 삭제할까요?')) return; localStorage.removeItem(HISTORY_KEY); renderHistory(); }
 function renderHistory() {
-  const hist=getHistory();
-  const listEl=document.getElementById('histList');
-  const emptyEl=document.getElementById('histEmpty');
-  if(!hist.length){ listEl.innerHTML=''; emptyEl.classList.remove('hidden'); return; }
+  const hist=getHistory(); const listEl=document.getElementById('histList'); const emptyEl=document.getElementById('histEmpty');
+  const cutoff=Date.now()-7*24*60*60*1000; const recent=hist.filter(h=>h.id>cutoff);
+  if(!recent.length){listEl.innerHTML='';emptyEl.classList.remove('hidden');return;}
   emptyEl.classList.add('hidden');
-
-  // 7일치만 표시
-  const cutoff=Date.now()-7*24*60*60*1000;
-  const recent=hist.filter(h=>h.id>cutoff);
-
-  if(!recent.length){ listEl.innerHTML='<p class="text-white/30 text-sm text-center py-10">최근 7일 내 주문이 없습니다.</p>'; return; }
-
   listEl.innerHTML=recent.map(h=>{
-    const tagCls=h.mealType==='점심'?'lunch':h.mealType==='저녁'?'dinner':'other';
-    const icon=h.mealType==='점심'?'☀️':h.mealType==='저녁'?'🌙':'🍽️';
-    const menuSummary=Object.entries(h.menuCount).map(([n,c])=>`${n}${c>1?' ×'+c:''}`).join(', ');
-    return `<div class="hist-card" onclick="viewHistory(${h.id})">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="hist-tag ${tagCls}">${icon} ${h.mealType}</span>
-          <span class="text-white font-semibold text-sm">${h.date}</span>
-          <span class="text-white/40 text-xs">${h.time}</span>
-        </div>
-        <span class="text-emerald-400 font-bold text-sm flex-shrink-0">${h.total.toLocaleString()}원</span>
-      </div>
-      <div class="text-white/40 text-xs mb-1">${h.workers.join(' · ')}</div>
-      <div class="text-white/25 text-xs truncate">${menuSummary}</div>
-    </div>`;
+    const tc=h.mealType==='점심'?'lunch':h.mealType==='저녁'?'dinner':'other';
+    const ic=h.mealType==='점심'?'☀️':h.mealType==='저녁'?'🌙':'🍽️';
+    const ms=Object.entries(h.menuCount).map(([n,c])=>n+(c>1?' ×'+c:'')).join(', ');
+    return '<div class="hist-card" onclick="viewHistory('+h.id+')">'
+      +'<div class="flex items-center justify-between mb-2"><div class="flex items-center gap-2 flex-wrap">'
+      +'<span class="hist-tag '+tc+'">'+ic+' '+h.mealType+'</span>'
+      +'<span class="text-white font-semibold text-sm">'+h.date+'</span>'
+      +'<span class="text-white/40 text-xs">'+h.time+'</span></div>'
+      +'<span class="text-emerald-400 font-bold text-sm flex-shrink-0">'+h.total.toLocaleString()+'원</span></div>'
+      +'<div class="text-white/40 text-xs mb-1">'+h.workers.join(' · ')+'</div>'
+      +'<div class="text-white/25 text-xs truncate">'+ms+'</div></div>';
   }).join('');
 }
-
 function viewHistory(id) {
-  const hist=getHistory();
-  const h=hist.find(x=>x.id===id);
-  if(!h) return;
+  const h=getHistory().find(x=>x.id===id); if(!h) return;
   viewingHistory=h;
-
-  document.getElementById('step4Sub').textContent=`${h.date} ${h.time} · ${h.mealType}`;
-
-  // 상세 내용 구성
-  let html=`<div class="glass rounded-2xl p-4 mb-3">`;
+  document.getElementById('step4Sub').textContent=h.date+' '+h.time+' · '+h.mealType;
+  let html='<div class="glass rounded-2xl p-4 mb-3">';
   h.workers.forEach(name=>{
-    const items=(h.orders[name]||[]);
-    html+=`<div class="summary-row">
-      <div class="text-white font-medium text-sm">${name}</div>
-      <div class="text-white/45 text-xs">${items.length?items.join(', '):'—'}</div>
-      <div class="text-white/60 text-sm text-right"></div>
-    </div>`;
+    const items=h.orders[name]||[];
+    html+='<div class="sum-row"><div class="text-white font-medium text-sm">'+name+'</div><div class="text-white/45 text-xs">'+(items.length?items.join(', '):'—')+'</div><div></div></div>';
   });
-  html+=`<div class="summary-row border-b-0 mt-1">
-    <span class="text-white/40 text-xs">소계</span><span></span>
-    <span class="text-white/70 text-sm font-bold text-right">${h.subtotal.toLocaleString()}원</span>
-  </div></div>`;
-
-  // 메뉴 집계
-  html+=`<div class="glass rounded-2xl p-4 mb-3">
-    <div class="text-white/40 text-xs font-semibold mb-3">메뉴 집계</div>`;
+  html+='<div class="sum-row border-b-0"><span class="text-white/40 text-xs">소계</span><span></span><span class="text-white/70 text-sm font-bold text-right">'+h.subtotal.toLocaleString()+'원</span></div></div>';
+  html+='<div class="glass rounded-2xl p-4 mb-3"><div class="text-white/40 text-xs font-semibold mb-3">메뉴 집계</div>';
   Object.entries(h.menuCount).forEach(([name,cnt])=>{
-    html+=`<div class="flex justify-between py-2 border-b border-white/5">
-      <span class="text-white text-sm">${name}</span>
-      <span class="text-white/50 text-sm">${cnt}개</span>
-    </div>`;
+    html+='<div class="flex justify-between py-2 border-b border-white/5"><span class="text-white text-sm">'+name+'</span><span class="text-white/50 text-sm">'+cnt+'개</span></div>';
   });
-  html+=`</div>`;
-
-  html+=`<div class="glass rounded-2xl px-4 py-3 mb-3 flex items-center justify-between">
-    <span class="text-white/60 text-sm">배달비</span>
-    <span class="text-white font-bold">4,500원</span>
-  </div>
-  <div class="glass rounded-2xl px-4 py-4 mb-3 flex items-center justify-between">
-    <span class="text-white font-bold">총 합계</span>
-    <span class="text-2xl font-bold text-emerald-400">${h.total.toLocaleString()}원</span>
-  </div>`;
-
+  html+='</div>';
+  html+='<div class="glass rounded-2xl px-4 py-3 mb-3 flex items-center justify-between"><span class="text-white/60 text-sm">배달비</span><span class="text-white font-bold">4,500원</span></div>';
+  html+='<div class="glass rounded-2xl px-4 py-4 mb-3 flex items-center justify-between"><span class="text-white font-bold">총 합계</span><span class="text-2xl font-bold text-emerald-400">'+h.total.toLocaleString()+'원</span></div>';
   document.getElementById('step4Body').innerHTML=html;
   show('step1',false); show('step4',true);
 }
 
-function resendSMS() {
-  if(!viewingHistory) return;
-  const recipient=(appData.settings||{}).sms_recipient||'';
-  window.location.href=`sms:${recipient}?body=${encodeURIComponent(viewingHistory.smsBody)}`;
-}
-
-// ── 전화 ──
-function callRestaurant() {
-  const phone=(appData.settings||{}).restaurant_phone||'';
-  if(!phone){ alert('data.json에 restaurant_phone을 입력해주세요.'); return; }
-  window.location.href=`tel:${phone}`;
-}
-
-// ── 유틸 ──
-function sortedWorkers() {
-  return [...selectedWorkers].sort((a,b)=>a-b).map(id=>appData.members.find(m=>m.id===id));
-}
-function goBack(step) {
-  if(step===2){ show('step2',false); show('step1',true); }
-  if(step===3){
-    if(isDishMode){ show('step3',false); show('step1',true); switchTab('dish'); isDishMode=false; }
-    else { show('step3',false); show('step2',true); }
-  }
-  if(step===4){ show('step4',false); show('step1',true); switchTab('hist'); }
-}
-function show(id,visible) {
-  const el=document.getElementById(id);
-  if(visible){ el.classList.remove('hidden'); el.classList.add('fade-in'); }
-  else el.classList.add('hidden');
-}
-
 // ── 요리주문만 ──
-let isDishMode = false;
-let dishSelection = []; // {id, name, price, qty}
-let dishCurrentCat = '전골류';
-
 function initDishPanel() {
-  dishSelection = [];
-  renderDishAll();
-  updateDishBar();
+  dishSelection=[]; renderDishAll(); updateDishBar();
 }
-
 function renderDishAll() {
-  renderDishSection('dishGrid1', '전골류', '#fb923c');
-  renderDishSection('dishGrid2', '볶음류', '#f472b6');
-  // 공기밥만
-  const rice = appData.menu.filter(x=>x.name==='공기밥');
-  const g3 = document.getElementById('dishGrid3');
-  g3.innerHTML = rice.map(item=>{
-    const selItem = dishSelection.find(s=>s.id===item.id);
-    const qty = selItem?.qty||0;
-    return `<div style="border-radius:14px;padding:10px 4px 8px;text-align:center;
-      background:${qty>0?'rgba(96,165,250,0.25)':'rgba(96,165,250,0.08)'};
-      border:2px solid ${qty>0?'rgba(96,165,250,0.8)':'rgba(96,165,250,0.3)'};">
-      <div style="font-size:24px;margin-bottom:4px;">🍚</div>
-      <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);margin-bottom:4px;">공기밥</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:6px;">${item.price.toLocaleString()}원</div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
-        <button onclick="changeDishQty(${item.id},-1)" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.15);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">−</button>
-        <span style="color:${qty>0?'#6ee7b7':'rgba(255,255,255,0.4)'};font-weight:700;font-size:14px;min-width:18px;text-align:center;">${qty}</span>
-        <button onclick="changeDishQty(${item.id},1)" style="width:24px;height:24px;border-radius:50%;background:rgba(96,165,250,0.5);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">+</button>
-      </div>
-    </div>`;
+  renderDishSection('dishGrid1','전골류'); renderDishSection('dishGrid2','볶음류');
+  const rice=appData.menu.filter(x=>x.name==='공기밥');
+  const g3=document.getElementById('dishGrid3');
+  g3.innerHTML=rice.map(item=>{
+    const s=dishSelection.find(x=>x.id===item.id); const qty=s?s.qty:0;
+    return '<div style="border-radius:14px;padding:10px 4px 8px;text-align:center;background:'+(qty>0?'rgba(96,165,250,.25)':'rgba(96,165,250,.08)')+';border:2px solid '+(qty>0?'rgba(96,165,250,.8)':'rgba(96,165,250,.3)')+';">'
+      +'<div style="font-size:24px;margin-bottom:4px;">🍚</div>'
+      +'<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:4px;">공기밥</div>'
+      +'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:6px;">'+item.price.toLocaleString()+'원</div>'
+      +'<div style="display:flex;align-items:center;justify-content:center;gap:8px;">'
+      +'<button onclick="changeDishQty('+item.id+',-1)" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.15);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">−</button>'
+      +'<span style="color:'+(qty>0?'#6ee7b7':'rgba(255,255,255,.4)')+';font-weight:700;font-size:14px;min-width:18px;text-align:center;">'+qty+'</span>'
+      +'<button onclick="changeDishQty('+item.id+',1)" style="width:24px;height:24px;border-radius:50%;background:rgba(96,165,250,.5);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">+</button>'
+      +'</div></div>';
   }).join('');
 }
-
-function renderDishSection(gridId, cat, color) {
-  const cs = catStyle[cat]||{bg:'rgba(255,255,255,0.06)',border:'rgba(255,255,255,0.2)',selBg:'rgba(99,102,241,0.45)'};
-  const items = appData.menu.filter(x=>x.category===cat);
-  const grid = document.getElementById(gridId);
-  grid.innerHTML = items.map(item=>{
-    const sel = dishSelection.find(s=>s._parentId===item.id);
-    const em = menuEmoji[item.name]||'🍽️';
-    return `<div class="dish-item" data-menu-id="${item.id}" data-cat="${cat}"
-      onclick="onDishItemClick(${item.id},'${cat}')"
-      style="border-radius:14px;padding:10px 4px 8px;text-align:center;cursor:pointer;
-      touch-action:manipulation;user-select:none;-webkit-user-select:none;
-      background:${sel?cs.selBg:cs.bg};
-      border:2px solid ${sel?'rgba(99,102,241,0.9)':cs.border};transition:all .15s;">
-      <div style="font-size:24px;line-height:1;margin-bottom:5px;">${em}</div>
-      <div style="font-size:11px;font-weight:700;color:${sel?'#c7d2fe':'rgba(255,255,255,0.9)'};margin-bottom:3px;line-height:1.3;">${item.name}</div>
-      <div style="font-size:10px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.4)'};">중 ${item.price.toLocaleString()}</div>
-      <div style="font-size:10px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.3)'};">대 ${item.price_large.toLocaleString()}</div>
-    </div>`;
+function renderDishSection(gid, cat) {
+  const cs=catStyle[cat]||{bg:'rgba(255,255,255,.06)',border:'rgba(255,255,255,.2)',selBg:'rgba(99,102,241,.45)'};
+  const items=appData.menu.filter(x=>x.category===cat);
+  document.getElementById(gid).innerHTML=items.map(item=>{
+    const sel=dishSelection.find(s=>s._parentId===item.id); const em=menuEmoji[item.name]||'🍽️';
+    return '<div style="border-radius:14px;padding:10px 4px 8px;text-align:center;cursor:pointer;touch-action:manipulation;user-select:none;background:'+(sel?cs.selBg:cs.bg)+';border:2px solid '+(sel?'rgba(99,102,241,.9)':cs.border)+';" onclick="onDishClick('+item.id+',\''+cat+'\')">'
+      +'<div style="font-size:24px;line-height:1;margin-bottom:5px;">'+em+'</div>'
+      +'<div style="font-size:11px;font-weight:700;color:'+(sel?'#c7d2fe':'rgba(255,255,255,.9)')+';margin-bottom:3px;line-height:1.3;">'+item.name+'</div>'
+      +'<div style="font-size:10px;color:'+(sel?'#6ee7b7':'rgba(255,255,255,.4)')+';">중 '+item.price.toLocaleString()+'</div>'
+      +'<div style="font-size:10px;color:'+(sel?'#6ee7b7':'rgba(255,255,255,.3)')+';">대 '+item.price_large.toLocaleString()+'</div>'
+      +'</div>';
   }).join('');
 }
-
-function onDishItemClick(menuId, cat) {
-  const menuData = appData.menu.find(x=>x.id===menuId);
-  const existing = dishSelection.find(s=>s._parentId===menuId);
-  if(existing){ dishSelection=dishSelection.filter(s=>s._parentId!==menuId); renderDishAll(); updateDishBar(); return; }
-  openDishSizePopup(menuData);
+function onDishClick(id, cat) {
+  const menuData=appData.menu.find(x=>x.id===id);
+  if (dishSelection.find(s=>s._parentId===id)) { dishSelection=dishSelection.filter(s=>s._parentId!==id); renderDishAll(); updateDishBar(); return; }
+  sizeMode='dish'; openSizePopup(menuData);
 }
-
-function changeDishQty(menuId, delta) {
-  const menuData = appData.menu.find(x=>x.id===menuId);
-  const idx = dishSelection.findIndex(x=>x.id===menuId);
-  if(idx>-1){
-    dishSelection[idx].qty = Math.max(0, dishSelection[idx].qty+delta);
-    if(dishSelection[idx].qty===0) dishSelection.splice(idx,1);
-  } else if(delta>0) {
-    dishSelection.push({...menuData, qty:1});
-  }
-  renderDishAll();
-  updateDishBar();
+function changeDishQty(id, delta) {
+  const menuData=appData.menu.find(x=>x.id===id);
+  const idx=dishSelection.findIndex(x=>x.id===id);
+  if (idx>-1) { dishSelection[idx].qty=Math.max(0,(dishSelection[idx].qty||1)+delta); if(dishSelection[idx].qty===0) dishSelection.splice(idx,1); }
+  else if (delta>0) dishSelection.push({...menuData,qty:1});
+  renderDishAll(); updateDishBar();
 }
-
-function openDishSizePopup(item) {
-  sizeTargetItem = item;
-  document.getElementById('sizePopupName').textContent = item.name;
-  document.getElementById('sizeMiddlePrice').textContent = item.price.toLocaleString()+'원';
-  document.getElementById('sizeLargePrice').textContent = item.price_large.toLocaleString()+'원';
-  // 사이즈 선택 시 dish용으로 처리
-  document.getElementById('sizePopup').dataset.mode = 'dish';
-  document.getElementById('sizePopup').classList.remove('hidden');
-}
-
 function updateDishBar() {
-  const bar = document.getElementById('dishSelectedBar');
-  if(!dishSelection.length){
-    bar.innerHTML = '<span id="dishSelectedEmpty" class="text-white/20 text-xs">아직 선택 없음</span>';
-    return;
-  }
-  const total = dishSelection.reduce((s,x)=>s+(x.price*x.qty),0);
-  bar.innerHTML = dishSelection.map(item=>`
-    <div onclick="removeDishItem(${item.id})"
-      style="display:inline-flex;align-items:center;gap:4px;
-      background:rgba(99,102,241,0.35);border:1.5px solid rgba(99,102,241,0.7);
-      border-radius:20px;padding:5px 12px;cursor:pointer;
-      font-size:13px;color:#e0e7ff;font-weight:600;white-space:nowrap;">
-      ${item.name}
-      <span style="color:rgba(255,255,255,0.35);font-size:15px;line-height:1;margin-left:2px;">×</span>
-    </div>
-  `).join('')
-  + `<span style="margin-left:auto;color:#6ee7b7;font-size:13px;font-weight:700;white-space:nowrap;">${total.toLocaleString()}원</span>`;
+  const bar=document.getElementById('dishSelBar');
+  if (!dishSelection.length) { bar.innerHTML='<span class="text-white/20 text-xs">아직 선택 없음</span>'; return; }
+  const total=dishSelection.reduce((s,x)=>s+(x.price*(x.qty||1)),0);
+  bar.innerHTML=dishSelection.map(item=>
+    '<div onclick="removeDishItem('+item.id+')" style="display:inline-flex;align-items:center;gap:4px;background:rgba(99,102,241,.35);border:1.5px solid rgba(99,102,241,.7);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:13px;color:#e0e7ff;font-weight:600;white-space:nowrap;touch-action:manipulation;">'+item.name+(item.qty&&item.qty>1?' ×'+item.qty:'')+'<span style="color:rgba(255,255,255,.35);font-size:15px;margin-left:2px;">×</span></div>'
+  ).join('')+'<span style="margin-left:auto;color:#6ee7b7;font-size:13px;font-weight:700;white-space:nowrap;">'+total.toLocaleString()+'원</span>';
 }
-
-function removeDishItem(id) {
-  dishSelection = dishSelection.filter(x=>x.id!==id);
-  renderDishGrid(dishCurrentCat);
-  updateDishBar();
-}
-
+function removeDishItem(id) { dishSelection=dishSelection.filter(x=>x.id!==id); renderDishAll(); updateDishBar(); }
 function confirmDishOrder() {
-  if(!dishSelection.length){ alert('메뉴를 선택해주세요.'); return; }
-  isDishMode = true;
-  // step3 요리주문 요약 표시
-  const subtotal = dishSelection.reduce((s,x)=>s+(x.price*x.qty),0);
-  document.getElementById('summaryList').innerHTML = dishSelection.map(item=>`
-    <div class="summary-row">
-      <div class="text-white font-medium text-sm col-span-2">${item.name}</div>
-      <div class="text-white/75 text-sm text-right">${(item.price*item.qty).toLocaleString()}원</div>
-    </div>`).join('');
-  document.getElementById('subtotalAmt').textContent = subtotal.toLocaleString()+'원';
-  document.getElementById('totalAmt').textContent = (subtotal+DELIVERY_FEE).toLocaleString()+'원';
-  show('step1',false); show('step3',true);
-  showGuide();
+  if (!dishSelection.length) { alert('메뉴를 선택해주세요.'); return; }
+  isDishMode=true;
+  const sub=dishSelection.reduce((s,x)=>s+(x.price*(x.qty||1)),0);
+  document.getElementById('sumList').innerHTML=dishSelection.map(item=>
+    '<div class="sum-row"><div class="text-white font-medium text-sm col-span-2">'+item.name+'</div><div class="text-white/75 text-sm text-right">'+(item.price*(item.qty||1)).toLocaleString()+'원</div></div>'
+  ).join('');
+  document.getElementById('subAmt').textContent=sub.toLocaleString()+'원';
+  document.getElementById('totalAmt').textContent=(sub+DELIVERY_FEE).toLocaleString()+'원';
+  show('step1',false); show('step3',true); showGuide();
 }
 
-// buildSMSBody 요리주문 버전
-function buildDishSMSBody() {
-  let body='안녕하세요 대양입니다\n\n';
-  dishSelection.forEach(item=>{ body+=`${item.name} ${item.qty}개\n`; });
-  const subtotal = dishSelection.reduce((s,x)=>s+(x.price*x.qty),0);
-  body+=`\n총 ${dishSelection.reduce((s,x)=>s+x.qty,0)}개`;
-  body+=`\n금액: ${subtotal.toLocaleString()}원 + 배달비 ${DELIVERY_FEE.toLocaleString()}원`;
-  body+=`\n합계: ${(subtotal+DELIVERY_FEE).toLocaleString()}원`;
-  return body;
-}
+// ── 메뉴판 ──
+function openMenuBoard() { document.getElementById('menuBoard').classList.remove('hidden'); document.body.style.overflow='hidden'; }
+function closeMenuBoard() { document.getElementById('menuBoard').classList.add('hidden'); document.body.style.overflow=''; }
 
-// ── 메뉴판 팝업 ──
-function openMenuBoard() {
-  document.getElementById('menuBoard').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-}
-function closeMenuBoard() {
-  document.getElementById('menuBoard').classList.add('hidden');
-  document.body.style.overflow = '';
-}
-
-// ── 홈 화면 추가 (Android PWA) ──
-let deferredPrompt = null;
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-});
-
+// ── 홈화면 추가 ──
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
 function addToHomeScreen() {
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
-  } else {
-    // 크롬 수동 안내
-    alert('크롬 브라우저 우상단 ⋮ 메뉴 → "홈 화면에 추가" 를 눌러주세요!');
-  }
+  if(deferredPrompt){deferredPrompt.prompt();deferredPrompt.userChoice.then(()=>{deferredPrompt=null;});}
+  else alert('크롬 브라우저 우상단 ⋮ → "홈 화면에 추가" 를 눌러주세요!');
 }
-
 function showGuide() {
-  const ua = navigator.userAgent;
-  const isAndroid = /Android/i.test(ua);
-  const isIOS = /iPhone|iPad/i.test(ua);
-  const isKakao = /KAKAOTALK/i.test(ua);
-  const area = document.getElementById('guideArea');
-  const text = document.getElementById('guideText');
-  const btn  = document.getElementById('addHomeBtn');
-
+  const ua=navigator.userAgent; const isAndroid=/Android/i.test(ua); const isIOS=/iPhone|iPad/i.test(ua); const isKakao=/KAKAOTALK/i.test(ua);
+  const area=document.getElementById('guideArea'); const text=document.getElementById('guideText'); const btn=document.getElementById('addHomeBtn');
   area.classList.remove('hidden');
-
-  if (isAndroid && isKakao) {
-    text.innerHTML = '⚠️ 카톡 브라우저는 문자 후 화면이 사라져요.<br>아래 버튼으로 홈 화면에 추가하면<br>앱처럼 열려서 문자·전화가 끊기지 않아요!';
-    btn.classList.remove('hidden');
-  } else if (isAndroid) {
-    text.innerHTML = '💡 홈 화면에 추가하면 앱처럼 사용 가능해요!';
-    btn.classList.remove('hidden');
-  } else if (isIOS && isKakao) {
-    text.innerHTML = '⚠️ 카톡 브라우저는 문자 후 화면이 사라져요.<br>Safari로 열기 → 하단 공유버튼 → 홈 화면에 추가<br>하시면 앱처럼 끊김 없이 사용 가능해요!';
-  } else if (isIOS) {
-    text.innerHTML = '💡 Safari 하단 공유 → 홈 화면에 추가하면<br>앱처럼 사용 가능해요!';
-  } else {
-    area.classList.add('hidden');
-  }
+  if(isAndroid&&isKakao){text.innerHTML='⚠️ 카톡 브라우저는 문자 후 화면이 사라져요.<br>아래 버튼으로 홈 화면에 추가하면 끊김 없이 사용 가능해요!';btn.classList.remove('hidden');}
+  else if(isAndroid){text.innerHTML='💡 홈 화면에 추가하면 앱처럼 사용 가능해요!';btn.classList.remove('hidden');}
+  else if(isIOS&&isKakao){text.innerHTML='⚠️ 카톡 브라우저는 문자 후 화면이 사라져요.<br>Safari로 열기 → 하단 공유 → 홈 화면에 추가';}
+  else if(isIOS){text.innerHTML='💡 Safari 하단 공유 → 홈 화면에 추가하면 앱처럼 사용 가능해요!';}
+  else{area.classList.add('hidden');}
 }
 
 // ── 맛평가 (jsonbin.io) ──
-const JSONBIN_KEY = '$2a$10$GwFFzG.nFbT30dkTcB7fa.IVkaAAg9yx9dApX1LwfTVrS2XgkBTGu';
-const JSONBIN_BIN = '6a0ad6bbc0954111d83e321a';
-const JSONBIN_URL = 'https://api.jsonbin.io/v3/b/6a0ad6bbc0954111d83e321a';
-
-let rvCurrentMenu = null;
-let rvStar = 4;
-let rvData = null;
-
-async function fetchReviews() {
-  if (rvData) return rvData;
+async function fetchRvData() {
+  if (rvMenuData) return rvMenuData;
   try {
-    const r = await fetch(JSONBIN_URL, { headers: { 'X-Master-Key': JSONBIN_KEY } });
-    if (!r.ok) return { error: r.status, msg: await r.text() };
+    const r = await fetch(JSONBIN_URL, {headers:{'X-Master-Key':JSONBIN_KEY}});
+    if (!r.ok) return {error:r.status,msg:await r.text()};
     const json = await r.json();
-    rvData = json.record || { reviews: [] };
-    return rvData;
-  } catch(e) { return { error: 'network', msg: e.message }; }
+    rvMenuData = json.record || {reviews:[]};
+    return rvMenuData;
+  } catch(e) { return {error:'network',msg:e.message}; }
 }
-
-async function saveReviews(data) {
+async function saveRvData(data) {
   try {
-    const r = await fetch(JSONBIN_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
-      body: JSON.stringify(data)
-    });
+    const r = await fetch(JSONBIN_URL,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':JSONBIN_KEY},body:JSON.stringify(data)});
     if (!r.ok) return false;
-    rvData = data; return true;
+    rvMenuData = data; return true;
   } catch { return false; }
 }
-
 function openReview() {
-  document.getElementById('reviewScreen').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-  renderRvMenuList();
+  document.getElementById('rvScreen').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+  renderRvList();
 }
 function closeReview() {
-  document.getElementById('reviewScreen').classList.add('hidden');
-  document.body.style.overflow = '';
+  document.getElementById('rvScreen').classList.add('hidden');
+  document.body.style.overflow='';
 }
-
-async function renderRvMenuList() {
-  const listEl = document.getElementById('rv-menu-list');
-  listEl.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;padding:40px 0;">불러오는 중...</div>';
-  document.getElementById('rv-detail').classList.add('hidden');
+async function renderRvList() {
+  const listEl=document.getElementById('rvList');
+  listEl.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:40px 0;">불러오는 중...</div>';
+  document.getElementById('rvDetail').classList.add('hidden');
   listEl.classList.remove('hidden');
-  const data = await fetchReviews();
+  const data = await fetchRvData();
   if (data.error) {
-    listEl.innerHTML = '<div style="text-align:center;padding:30px 0;"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="color:#f87171;font-size:14px;font-weight:700;">연결 오류 (' + data.error + ')</div><button onclick="rvData=null;renderRvMenuList()" style="margin-top:16px;padding:10px 24px;border-radius:14px;border:none;background:rgba(99,102,241,0.3);color:#a5b4fc;font-size:13px;font-weight:700;cursor:pointer;">다시 시도</button></div>';
+    listEl.innerHTML='<div style="text-align:center;padding:30px 0;"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="color:#f87171;font-size:14px;font-weight:700;margin-bottom:8px;">연결 오류 ('+data.error+')</div><button onclick="rvMenuData=null;renderRvList()" style="margin-top:16px;padding:10px 24px;border-radius:14px;border:none;background:rgba(99,102,241,.3);color:#a5b4fc;font-size:13px;font-weight:700;cursor:pointer;">다시 시도</button></div>';
     return;
   }
-  const reviews = data.reviews || [];
-  const stats = {};
-  reviews.forEach(rv => {
-    if (!rv.menu || !rv.star) return;
-    if (!stats[rv.menu]) stats[rv.menu] = { total:0, count:0, dist:[0,0,0,0,0] };
-    stats[rv.menu].total += rv.star; stats[rv.menu].count++;
-    stats[rv.menu].dist[rv.star-1]++;
+  const reviews=data.reviews||[]; const stats={};
+  reviews.forEach(rv=>{
+    if(!rv.menu||!rv.star) return;
+    if(!stats[rv.menu]) stats[rv.menu]={total:0,count:0,dist:[0,0,0,0,0]};
+    stats[rv.menu].total+=rv.star; stats[rv.menu].count++; stats[rv.menu].dist[rv.star-1]++;
   });
-  const catOrder = ['식사','전골류','볶음류','사이드'];
-  const catEmoji = { '식사':'🍜','전골류':'🍲','볶음류':'🥘','사이드':'🥢' };
-  let html = '';
-  catOrder.forEach(cat => {
-    const items = appData.menu.filter(x=>x.category===cat);
-    if (!items.length) return;
-    html += '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.3);margin:16px 0 8px;">' + catEmoji[cat] + ' ' + cat.toUpperCase() + '</div>';
-    items.forEach(item => {
-      const s = stats[item.name];
-      const avg = s ? (s.total/s.count).toFixed(1) : null;
-      const sf = avg ? Math.round(parseFloat(avg)) : 0;
-      html += '<div class="rv-menu-row" onclick="openRvDetail('' + item.name + '')">'
-        + '<div style="font-size:26px;flex-shrink:0;">' + (menuEmoji[item.name]||'🍽️') + '</div>'
-        + '<div style="flex:1;"><div style="font-size:15px;font-weight:700;color:white;margin-bottom:3px;">' + item.name + '</div>'
-        + '<div style="font-size:11px;color:rgba(255,255,255,0.3);">' + (item.price_large ? '중 '+item.price.toLocaleString()+' / 대 '+item.price_large.toLocaleString()+'원' : item.price.toLocaleString()+'원') + '</div></div>'
-        + '<div style="text-align:right;flex-shrink:0;">'
-        + (avg ? '<div style="font-size:14px;">' + '⭐'.repeat(sf) + '☆'.repeat(5-sf) + '</div><div style="font-size:13px;font-weight:700;color:#fbbf24;">' + avg + '</div><div style="font-size:10px;color:rgba(255,255,255,0.3);">' + s.count + '명</div>'
-               : '<div style="font-size:11px;color:rgba(255,255,255,0.2);">아직 없음</div>')
-        + '</div><div style="color:rgba(255,255,255,0.2);font-size:18px;margin-left:4px;">›</div></div>';
+  const catOrder=['식사','전골류','볶음류','사이드'];
+  const catEmoji={'식사':'🍜','전골류':'🍲','볶음류':'🥘','사이드':'🥢'};
+  let html='';
+  catOrder.forEach(cat=>{
+    const items=appData.menu.filter(x=>x.category===cat); if(!items.length) return;
+    html+='<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,.3);margin:16px 0 8px;">'+catEmoji[cat]+' '+cat.toUpperCase()+'</div>';
+    items.forEach(item=>{
+      const s=stats[item.name]; const avg=s?(s.total/s.count).toFixed(1):null; const sf=avg?Math.round(parseFloat(avg)):0;
+      html+='<div class="rv-row" onclick="openRvDetail(\''+item.name+'\')">'
+        +'<div style="font-size:26px;flex-shrink:0;">'+(menuEmoji[item.name]||'🍽️')+'</div>'
+        +'<div style="flex:1;"><div style="font-size:15px;font-weight:700;color:white;margin-bottom:3px;">'+item.name+'</div>'
+        +'<div style="font-size:11px;color:rgba(255,255,255,.3);">'+(item.price_large?'중 '+item.price.toLocaleString()+' / 대 '+item.price_large.toLocaleString()+'원':item.price.toLocaleString()+'원')+'</div></div>'
+        +'<div style="text-align:right;flex-shrink:0;">'
+        +(avg?'<div style="font-size:14px;">'+'⭐'.repeat(sf)+'☆'.repeat(5-sf)+'</div><div style="font-size:13px;font-weight:700;color:#fbbf24;">'+avg+'</div><div style="font-size:10px;color:rgba(255,255,255,.3);">'+s.count+'명</div>'
+             :'<div style="font-size:11px;color:rgba(255,255,255,.2);">아직 없음</div>')
+        +'</div><div style="color:rgba(255,255,255,.2);font-size:18px;margin-left:4px;">›</div></div>';
     });
   });
-  listEl.innerHTML = html;
+  listEl.innerHTML=html;
 }
-
 async function openRvDetail(menuName) {
-  rvCurrentMenu = menuName; rvStar = 4;
-  const listEl = document.getElementById('rv-menu-list');
-  const detailEl = document.getElementById('rv-detail');
+  rvCurrentMenu=menuName; rvStar=4;
+  const listEl=document.getElementById('rvList'); const detailEl=document.getElementById('rvDetail');
   listEl.classList.add('hidden'); detailEl.classList.remove('hidden');
-  detailEl.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;padding:40px 0;">불러오는 중...</div>';
-  const data = await fetchReviews();
-  const reviews = (data.reviews||[]).filter(rv=>rv.menu===menuName);
-  const count = reviews.length;
-  const avg = count ? (reviews.reduce((s,r)=>s+r.star,0)/count).toFixed(1) : null;
-  const dist = [0,0,0,0,0];
-  reviews.forEach(r=>{ if(r.star>=1&&r.star<=5) dist[r.star-1]++; });
-  const item = appData.menu.find(x=>x.name===menuName)||{};
-
-  let html = '<button onclick="backToRvList()" style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;margin-bottom:16px;background:none;border:none;">‹ 메뉴 목록</button>';
-  html += '<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:18px;margin-bottom:12px;">';
-  html += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:' + (count?'14px':'0') + ';">';
-  html += '<div style="font-size:38px;">' + (menuEmoji[menuName]||'🍽️') + '</div>';
-  html += '<div><div style="font-size:18px;font-weight:900;color:white;">' + menuName + '</div>';
-  html += '<div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:2px;">' + (item.price_large?'중 '+(item.price?.toLocaleString())+' / 대 '+(item.price_large?.toLocaleString())+'원':(item.price?.toLocaleString())+'원') + '</div></div></div>';
+  detailEl.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:40px 0;">불러오는 중...</div>';
+  const data=await fetchRvData();
+  const reviews=(data.reviews||[]).filter(rv=>rv.menu===menuName);
+  const count=reviews.length; const avg=count?(reviews.reduce((s,r)=>s+r.star,0)/count).toFixed(1):null;
+  const dist=[0,0,0,0,0]; reviews.forEach(r=>{if(r.star>=1&&r.star<=5)dist[r.star-1]++;});
+  const item=appData.menu.find(x=>x.name===menuName)||{};
+  let html='<button onclick="backToRvList()" style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.4);font-size:13px;cursor:pointer;margin-bottom:16px;background:none;border:none;">‹ 메뉴 목록</button>';
+  html+='<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:18px;margin-bottom:12px;">';
+  html+='<div style="display:flex;align-items:center;gap:14px;margin-bottom:'+(count?'14px':'0')+';">';
+  html+='<div style="font-size:38px;">'+(menuEmoji[menuName]||'🍽️')+'</div><div>';
+  html+='<div style="font-size:18px;font-weight:900;color:white;">'+menuName+'</div>';
+  html+='<div style="font-size:12px;color:rgba(255,255,255,.3);margin-top:2px;">'+(item.price_large?'중 '+(item.price||0).toLocaleString()+' / 대 '+(item.price_large||0).toLocaleString()+'원':(item.price||0).toLocaleString()+'원')+'</div></div></div>';
   if(count){
-    html += '<div style="display:flex;align-items:center;gap:14px;"><div style="font-size:38px;font-weight:900;color:#fbbf24;line-height:1;">' + avg + '</div><div style="flex:1;">';
-    [5,4,3,2,1].forEach(s=>{
-      html += '<div class="star-bar-row"><div style="font-size:11px;color:rgba(255,255,255,0.4);width:14px;text-align:right;">' + s + '</div><div class="star-bar-track"><div class="star-bar-fill" style="width:' + (dist[s-1]/count*100) + '%"></div></div><div style="font-size:10px;color:rgba(255,255,255,0.3);width:16px;">' + dist[s-1] + '</div></div>';
-    });
-    html += '</div></div><div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;">' + count + '명이 평가했어요</div>';
+    html+='<div style="display:flex;align-items:center;gap:14px;"><div style="font-size:38px;font-weight:900;color:#fbbf24;line-height:1;">'+avg+'</div><div style="flex:1;">';
+    [5,4,3,2,1].forEach(s=>{html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><div style="font-size:11px;color:rgba(255,255,255,.4);width:14px;text-align:right;">'+s+'</div><div class="sbar-track"><div class="sbar-fill" style="width:'+(dist[s-1]/count*100)+'%"></div></div><div style="font-size:10px;color:rgba(255,255,255,.3);width:16px;">'+dist[s-1]+'</div></div>';});
+    html+='</div></div><div style="font-size:12px;color:rgba(255,255,255,.3);text-align:center;margin-top:8px;">'+count+'명이 평가했어요</div>';
   }
-  html += '</div>';
-  html += '<div class="write-area"><div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-bottom:10px;">✏️ 내 평가 남기기</div>';
-  html += '<div id="rv-stars" style="display:flex;gap:8px;margin-bottom:12px;">' + [1,2,3,4,5].map(v=>'<span onclick="setRvStar('+v+')" style="font-size:28px;cursor:pointer;filter:'+(v<=4?'none':'grayscale(1) opacity(.3)')+';" data-rv="'+v+'">⭐</span>').join('') + '</div>';
-  html += '<textarea id="rv-text" rows="2" placeholder="' + menuName + ' 어땠나요? 솔직하게 남겨주세요 😊" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:11px 14px;color:white;font-size:13px;resize:none;outline:none;font-family:inherit;margin-bottom:10px;"></textarea>';
-  html += '<button onclick="submitRvComment()" style="width:100%;padding:12px;border-radius:14px;border:none;cursor:pointer;font-size:13px;font-weight:700;background:linear-gradient(135deg,#ef4444,#f97316);color:white;">등록하기</button></div>';
-  html += '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-bottom:10px;">💬 ' + count + '개의 평가</div>';
+  html+='</div>';
+  html+='<div class="write-box"><div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:1px;margin-bottom:10px;">✏️ 내 평가 남기기</div>';
+  html+='<div id="rv-stars" style="display:flex;gap:8px;margin-bottom:12px;">'
+    +[1,2,3,4,5].map(v=>'<span onclick="setRvStar('+v+')" style="font-size:28px;cursor:pointer;filter:'+(v<=4?'none':'grayscale(1) opacity(.3)')+';touch-action:manipulation;" data-rv="'+v+'">⭐</span>').join('')+'</div>';
+  html+='<textarea id="rv-text" rows="2" placeholder="'+menuName+' 어땠나요? 솔직하게 남겨주세요 😊" style="width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:11px 14px;color:white;font-size:13px;resize:none;outline:none;font-family:inherit;margin-bottom:10px;"></textarea>';
+  html+='<button onclick="submitRvComment()" style="width:100%;padding:12px;border-radius:14px;border:none;cursor:pointer;font-size:13px;font-weight:700;background:linear-gradient(135deg,#ef4444,#f97316);color:white;touch-action:manipulation;">등록하기</button></div>';
+  html+='<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:1px;margin-bottom:10px;">💬 '+count+'개의 평가</div>';
   reviews.slice().reverse().forEach(rv=>{
-    html += '<div class="rv-comment-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;"><div style="font-size:15px;">' + '⭐'.repeat(rv.star||0) + '☆'.repeat(5-(rv.star||0)) + '</div><div style="font-size:10px;color:rgba(255,255,255,0.25);">' + (rv.date||'') + '</div></div><div style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.6;">' + (rv.comment||'') + '</div></div>';
+    html+='<div class="rv-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;"><div style="font-size:15px;">'+'⭐'.repeat(rv.star||0)+'☆'.repeat(5-(rv.star||0))+'</div><div style="font-size:10px;color:rgba(255,255,255,.25);">'+(rv.date||'')+'</div></div><div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;">'+(rv.comment||'')+'</div></div>';
   });
-  if(!count) html += '<div style="text-align:center;padding:20px 0;color:rgba(255,255,255,0.2);font-size:13px;">첫 평가를 남겨주세요!</div>';
-  detailEl.innerHTML = html;
+  if(!count) html+='<div style="text-align:center;padding:20px 0;color:rgba(255,255,255,.2);font-size:13px;">첫 평가를 남겨주세요!</div>';
+  detailEl.innerHTML=html;
 }
-
 function backToRvList() {
-  document.getElementById('rv-detail').classList.add('hidden');
-  document.getElementById('rv-menu-list').classList.remove('hidden');
+  document.getElementById('rvDetail').classList.add('hidden');
+  document.getElementById('rvList').classList.remove('hidden');
 }
 function setRvStar(v) {
-  rvStar = v;
+  rvStar=v;
   document.querySelectorAll('#rv-stars span').forEach(el=>{
-    el.style.filter = parseInt(el.dataset.rv)<=v ? 'none' : 'grayscale(1) opacity(.3)';
+    el.style.filter=parseInt(el.dataset.rv)<=v?'none':'grayscale(1) opacity(.3)';
   });
 }
 async function submitRvComment() {
-  const text = document.getElementById('rv-text').value.trim();
-  if (!text) { alert('평가를 입력해주세요!'); return; }
-  const btn = document.querySelector('.write-area button');
-  btn.textContent = '등록 중...'; btn.disabled = true;
-  const data = await fetchReviews();
-  if (!data.reviews) data.reviews = [];
-  data.reviews.push({ menu:rvCurrentMenu, star:rvStar, comment:text, date:new Date().toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'}) });
-  const ok = await saveReviews(data);
-  if (ok) { rvData=data; await openRvDetail(rvCurrentMenu); }
-  else { alert('등록 실패. 다시 시도해주세요.'); btn.textContent='등록하기'; btn.disabled=false; }
+  const text=document.getElementById('rv-text').value.trim();
+  if(!text){alert('평가를 입력해주세요!');return;}
+  const btn=document.querySelector('.write-box button');
+  btn.textContent='등록 중...'; btn.disabled=true;
+  const data=await fetchRvData();
+  if(!data.reviews) data.reviews=[];
+  data.reviews.push({menu:rvCurrentMenu,star:rvStar,comment:text,date:new Date().toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'})});
+  const ok=await saveRvData(data);
+  if(ok){rvMenuData=data;await openRvDetail(rvCurrentMenu);}
+  else{alert('등록 실패. 다시 시도해주세요.');btn.textContent='등록하기';btn.disabled=false;}
+}
+
+// ── 유틸 ──
+function sortedWorkers() { return [...selectedWorkers].sort((a,b)=>a-b).map(id=>appData.members.find(m=>m.id===id)); }
+function goBack(step) {
+  if(step===2){show('step2',false);show('step1',true);}
+  if(step===3){show('step3',false);isDishMode?show('step1',true):show('step2',true);isDishMode=false;}
+  if(step===4){show('step4',false);show('step1',true);switchTab('hist');}
+}
+function show(id,visible) {
+  const el=document.getElementById(id);
+  if(visible){el.classList.remove('hidden');el.classList.add('fade-in');}
+  else el.classList.add('hidden');
 }
 
 loadData();
 </script>
-<!-- ── 맛평가 전체화면 ── -->
-<div id="reviewScreen" class="hidden fixed inset-0 z-[150] flex flex-col" style="background:radial-gradient(ellipse at 20% 10%,rgba(239,68,68,0.12) 0%,transparent 50%),radial-gradient(ellipse at 80% 90%,rgba(99,102,241,0.1) 0%,transparent 50%),#0f172a;">
-  <div class="max-w-md mx-auto w-full flex flex-col h-full">
-
-    <!-- 헤더 -->
-    <div class="flex items-center justify-between px-4 pt-6 pb-4 flex-shrink-0">
-      <div>
-        <div class="text-white font-black text-xl">⭐ 맛 평가</div>
-        <div class="text-white/35 text-xs mt-0.5">억순이네 솔직 리뷰</div>
-      </div>
-      <button onclick="closeReview()" class="text-white/40 text-2xl leading-none w-9 h-9 flex items-center justify-center glass rounded-xl">✕</button>
-    </div>
-
-    <!-- 메뉴/상세 전환 -->
-    <div id="rv-menu-list" class="flex-1 overflow-y-auto px-4 pb-6"></div>
-    <div id="rv-detail" class="hidden flex-1 overflow-y-auto px-4 pb-6"></div>
-  </div>
-</div>
-
-<style>
-@keyframes glowPulse2 {
-  0%,100%{ box-shadow:0 0 6px rgba(239,68,68,0.3); }
-  50%{ box-shadow:0 0 18px rgba(239,68,68,0.7),0 0 30px rgba(239,68,68,0.3); }
-}
-.rv-menu-row {
-  display:flex;align-items:center;gap:14px;
-  padding:14px 16px;border-radius:18px;margin-bottom:8px;cursor:pointer;
-  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);
-  transition:all .2s;
-}
-.rv-menu-row:active{transform:scale(.98);background:rgba(255,255,255,0.08);}
-.star-bar-row{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-.star-bar-track{flex:1;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;}
-.star-bar-fill{height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);border-radius:3px;}
-.rv-comment-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:14px 16px;margin-bottom:8px;}
-.write-area{background:rgba(239,68,68,0.08);border:1.5px solid rgba(239,68,68,0.3);border-radius:20px;padding:16px;margin-bottom:16px;}
-</style>
+</body>
 </html>
