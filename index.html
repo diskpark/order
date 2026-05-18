@@ -470,22 +470,6 @@ async function loadData() {
   document.querySelectorAll('#callBtnLabel,#callBtnLabel2').forEach(el => el.textContent = `${rname} 전화`);
   document.querySelector('h1') && (document.querySelector('h1').textContent = `${rname} 식사 주문`);
 
-  // review 라벨 자동 생성
-  getToken().then(token => {
-    if (!token) return;
-    fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/labels/review`, {
-      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
-    }).then(r => {
-      if (r.status === 404) {
-        fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/labels`, {
-          method: 'POST',
-          headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: 'review', color: 'e11d48', description: '맛 평가 리뷰' })
-        });
-      }
-    }).catch(()=>{});
-  });
-
   renderMemberGrid();
 }
 
