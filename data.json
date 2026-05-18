@@ -2,7 +2,8 @@
   "settings": {
     "sms_recipient": "01020098442",
     "restaurant_phone": "0614642008",
-    "restaurant_name": "억순이네"
+    "restaurant_name": "억순이네",
+    "gh_token": "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"
   },
   "members": [
     {"id": 1,  "name": "이원훈"},
@@ -46,20 +47,17 @@
     {"id": 8,  "name": "김치찌개",   "price": 9000,  "category": "식사"},
     {"id": 9,  "name": "순두부찌개", "price": 9000,  "category": "식사"},
     {"id": 10, "name": "된장찌개",   "price": 9000,  "category": "식사"},
-
     {"id": 11, "name": "돼지곱창전골", "price": 22000, "price_large": 27000, "category": "전골류"},
     {"id": 12, "name": "소곱창전골",   "price": 27000, "price_large": 32000, "category": "전골류"},
     {"id": 13, "name": "막창전골",     "price": 27000, "price_large": 32000, "category": "전골류"},
     {"id": 14, "name": "소불고기전골", "price": 22000, "price_large": 27000, "category": "전골류"},
     {"id": 15, "name": "부대전골",     "price": 22000, "price_large": 27000, "category": "전골류"},
     {"id": 16, "name": "감자탕",       "price": 27000, "price_large": 32000, "category": "전골류"},
-
     {"id": 17, "name": "순대곱창볶음",     "price": 22000, "price_large": 27000, "category": "볶음류"},
     {"id": 18, "name": "야채곱창볶음",     "price": 22000, "price_large": 27000, "category": "볶음류"},
     {"id": 19, "name": "야채막창볶음",     "price": 27000, "price_large": 32000, "category": "볶음류"},
     {"id": 20, "name": "제육볶음",         "price": 22000, "price_large": 27000, "category": "볶음류"},
     {"id": 21, "name": "콩나물대패불고기", "price": 22000, "price_large": 27000, "category": "볶음류"},
-
     {"id": 22, "name": "순대",     "price": 7000,  "category": "사이드"},
     {"id": 23, "name": "계란찜",   "price": 3000,  "category": "사이드"},
     {"id": 24, "name": "계란말이", "price": 10000, "category": "사이드"},
