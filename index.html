@@ -562,38 +562,43 @@ function switchMenuCat(cat) {
 
 function renderMenuGrid(cat) {
   const cs = catStyle[cat]||{emoji:'🍽️',color:'#fff',border:'rgba(255,255,255,0.2)',bg:'rgba(255,255,255,0.06)',selBg:'rgba(99,102,241,0.45)'};
-  const items = appData.menu.filter(x=>x.category===cat);
   const hasSizes = cat==='전골류'||cat==='볶음류';
+  // 전골/볶음 탭엔 공기밥 카드도 추가
+  const baseItems = appData.menu.filter(x=>x.category===cat);
+  const riceItem = appData.menu.find(x=>x.name==='공기밥');
+  const items = hasSizes ? [...baseItems, riceItem].filter(Boolean) : baseItems;
   const cols = hasSizes ? 3 : 4;
   const listEl = document.getElementById('menuList');
 
   listEl.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(${cols},1fr);gap:8px;">
       ${items.map(item=>{
-        const sel = currentMenuSelection.some(s=>s.id===item.id||s._parentId===item.id);
-        const em = menuEmoji[item.name]||'🍽️';
         const isQtyItem = item.name==='공기밥';
         const selItem = currentMenuSelection.find(s=>s.id===item.id);
         const qty = selItem?.qty||0;
-        const priceLabel = hasSizes
-          ? `<div style="font-size:11px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.45)'};">중 ${item.price.toLocaleString()}</div>
-             <div style="font-size:11px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.3)'};">대 ${item.price_large.toLocaleString()}</div>`
-          : isQtyItem
-            ? `<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:4px;">${item.price.toLocaleString()}원</div>
-               <div style="display:flex;align-items:center;justify-content:center;gap:8px;" onclick="event.stopPropagation()">
-                 <button onclick="changeQty(${item.id},-1,event)" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.15);color:white;font-size:16px;line-height:1;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">−</button>
-                 <span style="color:${qty>0?'#6ee7b7':'rgba(255,255,255,0.4)'};font-weight:700;font-size:14px;min-width:18px;text-align:center;">${qty}</span>
-                 <button onclick="changeQty(${item.id},1,event)" style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.6);color:white;font-size:16px;line-height:1;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">+</button>
-               </div>`
+        const sel = isQtyItem
+          ? qty>0
+          : currentMenuSelection.some(s=>s.id===item.id||s._parentId===item.id);
+        const priceLabel = isQtyItem
+          ? `<div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:4px;">${item.price.toLocaleString()}원</div>
+             <div style="display:flex;align-items:center;justify-content:center;gap:8px;" onclick="event.stopPropagation()">
+               <button onclick="changeQty(${item.id},-1,event)" style="width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.15);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">−</button>
+               <span style="color:${qty>0?'#6ee7b7':'rgba(255,255,255,0.4)'};font-weight:700;font-size:14px;min-width:18px;text-align:center;">${qty}</span>
+               <button onclick="changeQty(${item.id},1,event)" style="width:24px;height:24px;border-radius:50%;background:rgba(99,102,241,0.6);color:white;font-size:16px;border:none;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;">+</button>
+             </div>`
+          : hasSizes
+            ? `<div style="font-size:11px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.45)'};">중 ${item.price.toLocaleString()}</div>
+               <div style="font-size:11px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.3)'};">대 ${item.price_large?.toLocaleString()}</div>`
             : `<div style="font-size:11px;color:${sel?'#6ee7b7':'rgba(255,255,255,0.4)'};">${item.price.toLocaleString()}원</div>`;
-        return `<div class="kiosk-item" data-menu-id="${item.id}" data-has-size="${hasSizes}" data-is-qty="${isQtyItem}"
+        const em = menuEmoji[item.name]||'🍽️';
+        return `<div class="kiosk-item" data-menu-id="${item.id}" data-has-size="${hasSizes&&!isQtyItem}" data-is-qty="${isQtyItem}"
           style="border-radius:14px;padding:12px 4px 10px;text-align:center;cursor:pointer;
           touch-action:manipulation;user-select:none;-webkit-user-select:none;
-          background:${sel?cs.selBg:cs.bg};
-          border:2px solid ${sel?'rgba(99,102,241,0.9)':cs.border};
+          background:${sel?(isQtyItem?'rgba(96,165,250,0.25)':cs.selBg):cs.bg};
+          border:2px solid ${sel?(isQtyItem?'rgba(96,165,250,0.8)':'rgba(99,102,241,0.9)'):cs.border};
           transition:all .15s;">
           <div style="font-size:${hasSizes?'26px':'28px'};line-height:1;margin-bottom:6px;">${em}</div>
-          <div style="font-size:${hasSizes?'12px':'12px'};font-weight:700;color:${sel?'#c7d2fe':'rgba(255,255,255,0.9)'};margin-bottom:4px;line-height:1.3;">${item.name}</div>
+          <div style="font-size:12px;font-weight:700;color:${sel?'#c7d2fe':'rgba(255,255,255,0.9)'};margin-bottom:4px;line-height:1.3;">${item.name}</div>
           ${priceLabel}
         </div>`;
       }).join('')}
