@@ -677,6 +677,7 @@ function openSizePopup(item) {
   document.getElementById('sizePopupName').textContent = item.name;
   document.getElementById('sizeMiddlePrice').textContent = item.price.toLocaleString()+'원';
   document.getElementById('sizeLargePrice').textContent = item.price_large.toLocaleString()+'원';
+  document.getElementById('sizePopup').dataset.mode = 'normal';
   document.getElementById('sizePopup').classList.remove('hidden');
 }
 
@@ -700,7 +701,7 @@ function selectSize(size) {
     dishSelection = dishSelection.filter(x=>x._parentId!==sizeTargetItem.id);
     dishSelection.push(item);
     closeSizePopup();
-    renderDishGrid(dishCurrentCat);
+    renderDishAll();
     updateDishBar();
   } else {
     currentMenuSelection = currentMenuSelection.filter(x=>x._parentId!==sizeTargetItem.id);
