@@ -455,6 +455,21 @@ async function loadData() {
   document.querySelectorAll('#callBtnLabel,#callBtnLabel2').forEach(el => el.textContent = `${rname} 전화`);
   document.querySelector('h1') && (document.querySelector('h1').textContent = `${rname} 식사 주문`);
 
+  // review 라벨 자동 생성 (없으면)
+  if (s.gh_token) {
+    fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/labels/review`, {
+      headers: { Authorization: `token ${s.gh_token}`, Accept: 'application/vnd.github.v3+json' }
+    }).then(r => {
+      if (r.status === 404) {
+        fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/labels`, {
+          method: 'POST',
+          headers: { Authorization: `token ${s.gh_token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'review', color: 'e11d48', description: '맛 평가 리뷰' })
+        });
+      }
+    }).catch(()=>{});
+  }
+
   renderMemberGrid();
 }
 
@@ -1196,13 +1211,26 @@ let rvIssuesCache = null;
 
 async function fetchIssues() {
   if (rvIssuesCache) return rvIssuesCache;
+  const token = getToken();
+  if (!token) {
+    console.error('토큰 없음');
+    return [];
+  }
   try {
     const r = await fetch(`${GH_API}?state=open&labels=review&per_page=100`, {
-      headers: { Authorization: `token ${getToken()}`, Accept: 'application/vnd.github.v3+json' }
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
     });
+    if (!r.ok) {
+      const err = await r.text();
+      console.error('GitHub API 오류:', r.status, err);
+      return { error: r.status, msg: err };
+    }
     rvIssuesCache = await r.json();
     return rvIssuesCache;
-  } catch { return []; }
+  } catch(e) {
+    console.error('fetch 실패:', e);
+    return { error: 'network', msg: e.message };
+  }
 }
 
 async function renderRvMenuList() {
