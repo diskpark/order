@@ -247,12 +247,15 @@
     <div id="menuCatTabs" class="flex gap-2 flex-shrink-0 mb-3 overflow-x-auto pb-1"></div>
     <!-- 메뉴 그리드 -->
     <div id="menuList" class="flex-1 overflow-y-auto"></div>
-    <!-- 선택된 메뉴 표시 -->
-    <div id="selectedMenuBar" class="flex-shrink-0 mt-2 mb-1 min-h-[36px] flex flex-wrap gap-2 items-center">
-      <span class="text-white/25 text-xs" id="selectedMenuEmpty">선택된 메뉴 없음</span>
+    <!-- 선택된 메뉴 박스 -->
+    <div class="flex-shrink-0 mt-3 rounded-2xl px-4 py-3" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);min-height:52px;">
+      <div class="text-white/30 text-xs mb-2">선택된 메뉴</div>
+      <div id="selectedMenuBar" class="flex flex-wrap gap-2 items-center">
+        <span id="selectedMenuEmpty" class="text-white/20 text-xs">아직 선택 없음</span>
+      </div>
     </div>
     <!-- 버튼 -->
-    <div class="flex gap-3 flex-shrink-0 pt-2">
+    <div class="flex gap-3 flex-shrink-0 pt-3">
       <button onclick="closeMenuPopup()" class="glass flex-1 py-3 rounded-2xl text-white/60 font-medium">취소</button>
       <button onclick="confirmMenu()" class="btn-primary flex-1 py-3 rounded-2xl text-white font-bold">완료</button>
     </div>
@@ -587,21 +590,23 @@ function renderMenuGrid(cat) {
 
 function updateSelectedBar() {
   const bar = document.getElementById('selectedMenuBar');
-  const empty = document.getElementById('selectedMenuEmpty');
   if(!currentMenuSelection.length){
-    bar.innerHTML = '<span class="text-white/25 text-xs" id="selectedMenuEmpty">선택된 메뉴 없음</span>';
+    bar.innerHTML = '<span id="selectedMenuEmpty" class="text-white/20 text-xs">아직 선택 없음</span>';
     return;
   }
+  const total = currentMenuSelection.reduce((s,x)=>s+x.price,0);
   bar.innerHTML = currentMenuSelection.map(item=>`
-    <div onclick="removeSelectedItem(${item.id})" style="
-      display:inline-flex;align-items:center;gap:5px;
-      background:rgba(99,102,241,0.3);border:1px solid rgba(99,102,241,0.6);
-      border-radius:20px;padding:4px 10px;cursor:pointer;
-      font-size:12px;color:#c7d2fe;font-weight:600;white-space:nowrap;">
+    <div onclick="removeSelectedItem(${item.id})"
+      style="display:inline-flex;align-items:center;gap:4px;
+      background:rgba(99,102,241,0.35);border:1.5px solid rgba(99,102,241,0.7);
+      border-radius:20px;padding:5px 12px;cursor:pointer;
+      font-size:13px;color:#e0e7ff;font-weight:600;white-space:nowrap;
+      touch-action:manipulation;">
       ${item.name}
-      <span style="color:rgba(255,255,255,0.4);font-size:14px;line-height:1;">×</span>
+      <span style="color:rgba(255,255,255,0.35);font-size:15px;line-height:1;margin-left:2px;">×</span>
     </div>
-  `).join('');
+  `).join('')
+  + `<span style="margin-left:auto;color:#6ee7b7;font-size:13px;font-weight:700;white-space:nowrap;">${total.toLocaleString()}원</span>`;
 }
 
 function removeSelectedItem(id) {
