@@ -1201,37 +1201,37 @@ function showGuide() {
   }
 }
 
-// ── 맛평가 ──
-const GH_OWNER  = 'diskpark';
-const GH_REPO   = 'order';
-const GH_API    = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/issues`;
-const GIST_ID   = 'e6f06cbe60d8c1e84ee99553e05d4e87';
-
-let _ghToken = '';
-
-async function getToken() {
-  if (_ghToken) return _ghToken;
-  // 1) appData에 토큰 있으면 사용 (NAS 버전)
-  if (appData?.settings?.gh_token) {
-    _ghToken = appData.settings.gh_token;
-    return _ghToken;
-  }
-  // 2) Gist에서 토큰 로드 (GitHub Pages 버전)
-  try {
-    const r = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-    const data = await r.json();
-    const content = data?.files?.['config.json']?.content;
-    if (content) {
-      const cfg = JSON.parse(content);
-      _ghToken = cfg.gh_token || '';
-    }
-  } catch(e) { console.error('Gist 토큰 로드 실패:', e); }
-  return _ghToken;
-}
-function setToken(t) { _ghToken = t.trim(); }
+// ── 맛평가 (jsonbin.io) ──
+const JSONBIN_KEY = '$2a$10$GwFFzG.nFbT30dkTcB7fa.IVkaAAg9yx9dApX1LwfTVrS2XgkBTGu';
+const JSONBIN_BIN = '6a0ad6bbc0954111d83e321a';
+const JSONBIN_URL = 'https://api.jsonbin.io/v3/b/6a0ad6bbc0954111d83e321a';
 
 let rvCurrentMenu = null;
 let rvStar = 4;
+let rvData = null;
+
+async function fetchReviews() {
+  if (rvData) return rvData;
+  try {
+    const r = await fetch(JSONBIN_URL, { headers: { 'X-Master-Key': JSONBIN_KEY } });
+    if (!r.ok) return { error: r.status, msg: await r.text() };
+    const json = await r.json();
+    rvData = json.record || { reviews: [] };
+    return rvData;
+  } catch(e) { return { error: 'network', msg: e.message }; }
+}
+
+async function saveReviews(data) {
+  try {
+    const r = await fetch(JSONBIN_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_KEY },
+      body: JSON.stringify(data)
+    });
+    if (!r.ok) return false;
+    rvData = data; return true;
+  } catch { return false; }
+}
 
 function openReview() {
   document.getElementById('reviewScreen').classList.remove('hidden');
@@ -1243,180 +1243,85 @@ function closeReview() {
   document.body.style.overflow = '';
 }
 
-// 메뉴별 평균 별점 계산 (이슈 목록에서)
-let rvIssuesCache = null;
-
-async function fetchIssues() {
-  if (rvIssuesCache) return rvIssuesCache;
-  const token = await getToken();
-  if (!token) {
-    console.error('토큰 없음');
-    return { error: '토큰 없음', msg: 'Gist에서 토큰을 불러오지 못했습니다.' };
-  }
-  try {
-    const r = await fetch(`${GH_API}?state=open&labels=review&per_page=100`, {
-      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    if (!r.ok) {
-      const err = await r.text();
-      console.error('GitHub API 오류:', r.status, err);
-      return { error: r.status, msg: err };
-    }
-    rvIssuesCache = await r.json();
-    return rvIssuesCache;
-  } catch(e) {
-    console.error('fetch 실패:', e);
-    return { error: 'network', msg: e.message };
-  }
-}
-
 async function renderRvMenuList() {
   const listEl = document.getElementById('rv-menu-list');
-  const token = getToken();
-  listEl.innerHTML = `<div style="color:rgba(255,255,255,0.3);font-size:12px;text-align:center;padding:20px 0;">
-    불러오는 중...<br><br>
-    <span style="font-size:10px;color:rgba(255,255,255,0.2);">
-      토큰: ${token ? '✅ 있음 ('+token.substring(0,10)+'...)' : '❌ 없음'}
-    </span>
-  </div>`;
+  listEl.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;padding:40px 0;">불러오는 중...</div>';
   document.getElementById('rv-detail').classList.add('hidden');
   listEl.classList.remove('hidden');
-
-  const issues = await fetchIssues();
-
-  // 오류 처리
-  if (!Array.isArray(issues)) {
-    listEl.innerHTML = `<div style="text-align:center;padding:30px 0;">
-      <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
-      <div style="color:#f87171;font-size:14px;font-weight:700;margin-bottom:8px;">연결 오류 (${issues.error||''})</div>
-      <div style="color:rgba(255,255,255,0.4);font-size:12px;line-height:1.6;word-break:break-all;padding:0 10px;">${issues.msg||''}</div>
-      <button onclick="rvIssuesCache=null;renderRvMenuList()" style="margin-top:16px;padding:10px 24px;border-radius:14px;border:none;background:rgba(99,102,241,0.3);color:#a5b4fc;font-size:13px;font-weight:700;cursor:pointer;">다시 시도</button>
-    </div>`;
+  const data = await fetchReviews();
+  if (data.error) {
+    listEl.innerHTML = '<div style="text-align:center;padding:30px 0;"><div style="font-size:40px;margin-bottom:12px;">⚠️</div><div style="color:#f87171;font-size:14px;font-weight:700;">연결 오류 (' + data.error + ')</div><button onclick="rvData=null;renderRvMenuList()" style="margin-top:16px;padding:10px 24px;border-radius:14px;border:none;background:rgba(99,102,241,0.3);color:#a5b4fc;font-size:13px;font-weight:700;cursor:pointer;">다시 시도</button></div>';
     return;
   }
-
-  // 메뉴별 집계
+  const reviews = data.reviews || [];
   const stats = {};
-  issues.forEach(issue => {
-    try {
-      const data = JSON.parse(issue.body);
-      if (!data.menu || !data.star) return;
-      if (!stats[data.menu]) stats[data.menu] = { total: 0, count: 0, dist: [0,0,0,0,0] };
-      stats[data.menu].total += data.star;
-      stats[data.menu].count++;
-      stats[data.menu].dist[data.star - 1]++;
-    } catch {}
+  reviews.forEach(rv => {
+    if (!rv.menu || !rv.star) return;
+    if (!stats[rv.menu]) stats[rv.menu] = { total:0, count:0, dist:[0,0,0,0,0] };
+    stats[rv.menu].total += rv.star; stats[rv.menu].count++;
+    stats[rv.menu].dist[rv.star-1]++;
   });
-
   const catOrder = ['식사','전골류','볶음류','사이드'];
-  const catEmoji = { '식사':'🍜', '전골류':'🍲', '볶음류':'🥘', '사이드':'🥢' };
-
+  const catEmoji = { '식사':'🍜','전골류':'🍲','볶음류':'🥘','사이드':'🥢' };
   let html = '';
   catOrder.forEach(cat => {
-    const items = appData.menu.filter(x => x.category === cat);
+    const items = appData.menu.filter(x=>x.category===cat);
     if (!items.length) return;
-    html += `<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.3);margin:16px 0 8px;">${catEmoji[cat]} ${cat.toUpperCase()}</div>`;
+    html += '<div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(255,255,255,0.3);margin:16px 0 8px;">' + catEmoji[cat] + ' ' + cat.toUpperCase() + '</div>';
     items.forEach(item => {
       const s = stats[item.name];
-      const avg = s ? (s.total / s.count).toFixed(1) : null;
-      const starFilled = avg ? Math.round(parseFloat(avg)) : 0;
-      html += `<div class="rv-menu-row" onclick="openRvDetail('${item.name}')">
-        <div style="font-size:26px;flex-shrink:0;">${menuEmoji[item.name]||'🍽️'}</div>
-        <div style="flex:1;">
-          <div style="font-size:15px;font-weight:700;color:white;margin-bottom:3px;">${item.name}</div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.3);">${item.price_large ? `중 ${item.price.toLocaleString()} / 대 ${item.price_large.toLocaleString()}원` : `${item.price.toLocaleString()}원`}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0;">
-          ${avg
-            ? `<div style="font-size:14px;">${'⭐'.repeat(starFilled)}${'☆'.repeat(5-starFilled)}</div>
-               <div style="font-size:13px;font-weight:700;color:#fbbf24;">${avg}</div>
-               <div style="font-size:10px;color:rgba(255,255,255,0.3);">${s.count}명</div>`
-            : `<div style="font-size:11px;color:rgba(255,255,255,0.2);">아직 없음</div>`}
-        </div>
-        <div style="color:rgba(255,255,255,0.2);font-size:18px;margin-left:4px;">›</div>
-      </div>`;
+      const avg = s ? (s.total/s.count).toFixed(1) : null;
+      const sf = avg ? Math.round(parseFloat(avg)) : 0;
+      html += '<div class="rv-menu-row" onclick="openRvDetail('' + item.name + '')">'
+        + '<div style="font-size:26px;flex-shrink:0;">' + (menuEmoji[item.name]||'🍽️') + '</div>'
+        + '<div style="flex:1;"><div style="font-size:15px;font-weight:700;color:white;margin-bottom:3px;">' + item.name + '</div>'
+        + '<div style="font-size:11px;color:rgba(255,255,255,0.3);">' + (item.price_large ? '중 '+item.price.toLocaleString()+' / 대 '+item.price_large.toLocaleString()+'원' : item.price.toLocaleString()+'원') + '</div></div>'
+        + '<div style="text-align:right;flex-shrink:0;">'
+        + (avg ? '<div style="font-size:14px;">' + '⭐'.repeat(sf) + '☆'.repeat(5-sf) + '</div><div style="font-size:13px;font-weight:700;color:#fbbf24;">' + avg + '</div><div style="font-size:10px;color:rgba(255,255,255,0.3);">' + s.count + '명</div>'
+               : '<div style="font-size:11px;color:rgba(255,255,255,0.2);">아직 없음</div>')
+        + '</div><div style="color:rgba(255,255,255,0.2);font-size:18px;margin-left:4px;">›</div></div>';
     });
   });
-
   listEl.innerHTML = html;
 }
 
 async function openRvDetail(menuName) {
-  rvCurrentMenu = menuName;
-  rvStar = 4;
+  rvCurrentMenu = menuName; rvStar = 4;
   const listEl = document.getElementById('rv-menu-list');
   const detailEl = document.getElementById('rv-detail');
-  listEl.classList.add('hidden');
-  detailEl.classList.remove('hidden');
-  detailEl.innerHTML = '<div class="text-white/30 text-sm text-center py-10">불러오는 중...</div>';
-
-  const issues = await fetchIssues();
-  const menuIssues = issues.filter(issue => {
-    try { return JSON.parse(issue.body).menu === menuName; } catch { return false; }
-  });
-
-  // 평균 계산
-  const count = menuIssues.length;
-  const avg = count ? (menuIssues.reduce((s,i) => { try { return s + JSON.parse(i.body).star; } catch { return s; } }, 0) / count).toFixed(1) : null;
+  listEl.classList.add('hidden'); detailEl.classList.remove('hidden');
+  detailEl.innerHTML = '<div style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;padding:40px 0;">불러오는 중...</div>';
+  const data = await fetchReviews();
+  const reviews = (data.reviews||[]).filter(rv=>rv.menu===menuName);
+  const count = reviews.length;
+  const avg = count ? (reviews.reduce((s,r)=>s+r.star,0)/count).toFixed(1) : null;
   const dist = [0,0,0,0,0];
-  menuIssues.forEach(i => { try { dist[JSON.parse(i.body).star-1]++; } catch {} });
-
+  reviews.forEach(r=>{ if(r.star>=1&&r.star<=5) dist[r.star-1]++; });
   const item = appData.menu.find(x=>x.name===menuName)||{};
 
-  let html = `
-    <button onclick="backToRvList()" style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;margin-bottom:16px;background:none;border:none;">‹ 메뉴 목록</button>
-
-    <!-- 헤더 카드 -->
-    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:18px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:${count?'14px':'0'};">
-        <div style="font-size:38px;">${menuEmoji[menuName]||'🍽️'}</div>
-        <div>
-          <div style="font-size:18px;font-weight:900;color:white;">${menuName}</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:2px;">${item.price_large?`중 ${item.price?.toLocaleString()} / 대 ${item.price_large?.toLocaleString()}원`:`${item.price?.toLocaleString()}원`}</div>
-        </div>
-      </div>
-      ${count ? `
-      <div style="display:flex;align-items:center;gap:14px;">
-        <div style="font-size:38px;font-weight:900;color:#fbbf24;line-height:1;">${avg}</div>
-        <div style="flex:1;">
-          ${[5,4,3,2,1].map((s,i)=>`
-          <div class="star-bar-row">
-            <div style="font-size:11px;color:rgba(255,255,255,0.4);width:14px;text-align:right;">${s}</div>
-            <div class="star-bar-track"><div class="star-bar-fill" style="width:${dist[s-1]/count*100}%"></div></div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.3);width:16px;">${dist[s-1]}</div>
-          </div>`).join('')}
-        </div>
-      </div>
-      <div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;">${count}명이 평가했어요</div>
-      ` : ''}
-    </div>
-
-    <!-- 작성 폼 -->
-    <div class="write-area">
-      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-bottom:10px;">✏️ 내 평가 남기기</div>
-      <div id="rv-stars" style="display:flex;gap:8px;margin-bottom:12px;">
-        ${[1,2,3,4,5].map(v=>`<span onclick="setRvStar(${v})" style="font-size:28px;cursor:pointer;transition:all .15s;filter:${v<=4?'none':'grayscale(1) opacity(.3)'};" data-rv="${v}">⭐</span>`).join('')}
-      </div>
-      <textarea id="rv-text" rows="2" placeholder="${menuName} 어땠나요? 솔직하게 남겨주세요 😊"
-        style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:11px 14px;color:white;font-size:13px;resize:none;outline:none;font-family:inherit;margin-bottom:10px;"></textarea>
-      <button onclick="submitRvComment()" style="width:100%;padding:12px;border-radius:14px;border:none;cursor:pointer;font-size:13px;font-weight:700;background:linear-gradient(135deg,#ef4444,#f97316);color:white;box-shadow:0 4px 16px rgba(239,68,68,0.35);">등록하기</button>
-    </div>
-
-    <!-- 댓글 목록 -->
-    <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-bottom:10px;">💬 ${count}개의 평가</div>
-    ${menuIssues.map(issue => {
-      let data = {}; try { data = JSON.parse(issue.body); } catch {}
-      const date = new Date(issue.created_at).toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'});
-      return `<div class="rv-comment-card">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
-          <div style="font-size:15px;">${'⭐'.repeat(data.star||0)}${'☆'.repeat(5-(data.star||0))}</div>
-          <div style="font-size:10px;color:rgba(255,255,255,0.25);">${date}</div>
-        </div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.6;">${data.comment||''}</div>
-      </div>`;
-    }).join('')}
-    ${!count ? '<div style="text-align:center;padding:20px 0;color:rgba(255,255,255,0.2);font-size:13px;">첫 평가를 남겨주세요!</div>' : ''}
-  `;
+  let html = '<button onclick="backToRvList()" style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,0.4);font-size:13px;cursor:pointer;margin-bottom:16px;background:none;border:none;">‹ 메뉴 목록</button>';
+  html += '<div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:18px;margin-bottom:12px;">';
+  html += '<div style="display:flex;align-items:center;gap:14px;margin-bottom:' + (count?'14px':'0') + ';">';
+  html += '<div style="font-size:38px;">' + (menuEmoji[menuName]||'🍽️') + '</div>';
+  html += '<div><div style="font-size:18px;font-weight:900;color:white;">' + menuName + '</div>';
+  html += '<div style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:2px;">' + (item.price_large?'중 '+(item.price?.toLocaleString())+' / 대 '+(item.price_large?.toLocaleString())+'원':(item.price?.toLocaleString())+'원') + '</div></div></div>';
+  if(count){
+    html += '<div style="display:flex;align-items:center;gap:14px;"><div style="font-size:38px;font-weight:900;color:#fbbf24;line-height:1;">' + avg + '</div><div style="flex:1;">';
+    [5,4,3,2,1].forEach(s=>{
+      html += '<div class="star-bar-row"><div style="font-size:11px;color:rgba(255,255,255,0.4);width:14px;text-align:right;">' + s + '</div><div class="star-bar-track"><div class="star-bar-fill" style="width:' + (dist[s-1]/count*100) + '%"></div></div><div style="font-size:10px;color:rgba(255,255,255,0.3);width:16px;">' + dist[s-1] + '</div></div>';
+    });
+    html += '</div></div><div style="font-size:12px;color:rgba(255,255,255,0.3);text-align:center;margin-top:8px;">' + count + '명이 평가했어요</div>';
+  }
+  html += '</div>';
+  html += '<div class="write-area"><div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.4);letter-spacing:1px;margin-bottom:10px;">✏️ 내 평가 남기기</div>';
+  html += '<div id="rv-stars" style="display:flex;gap:8px;margin-bottom:12px;">' + [1,2,3,4,5].map(v=>'<span onclick="setRvStar('+v+')" style="font-size:28px;cursor:pointer;filter:'+(v<=4?'none':'grayscale(1) opacity(.3)')+';" data-rv="'+v+'">⭐</span>').join('') + '</div>';
+  html += '<textarea id="rv-text" rows="2" placeholder="' + menuName + ' 어땠나요? 솔직하게 남겨주세요 😊" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:11px 14px;color:white;font-size:13px;resize:none;outline:none;font-family:inherit;margin-bottom:10px;"></textarea>';
+  html += '<button onclick="submitRvComment()" style="width:100%;padding:12px;border-radius:14px;border:none;cursor:pointer;font-size:13px;font-weight:700;background:linear-gradient(135deg,#ef4444,#f97316);color:white;">등록하기</button></div>';
+  html += '<div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-bottom:10px;">💬 ' + count + '개의 평가</div>';
+  reviews.slice().reverse().forEach(rv=>{
+    html += '<div class="rv-comment-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;"><div style="font-size:15px;">' + '⭐'.repeat(rv.star||0) + '☆'.repeat(5-(rv.star||0)) + '</div><div style="font-size:10px;color:rgba(255,255,255,0.25);">' + (rv.date||'') + '</div></div><div style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.6;">' + (rv.comment||'') + '</div></div>';
+  });
+  if(!count) html += '<div style="text-align:center;padding:20px 0;color:rgba(255,255,255,0.2);font-size:13px;">첫 평가를 남겨주세요!</div>';
   detailEl.innerHTML = html;
 }
 
@@ -1424,44 +1329,23 @@ function backToRvList() {
   document.getElementById('rv-detail').classList.add('hidden');
   document.getElementById('rv-menu-list').classList.remove('hidden');
 }
-
 function setRvStar(v) {
   rvStar = v;
-  document.querySelectorAll('#rv-stars span').forEach(el => {
-    const val = parseInt(el.dataset.rv);
-    el.style.filter = val <= v ? 'none' : 'grayscale(1) opacity(.3)';
+  document.querySelectorAll('#rv-stars span').forEach(el=>{
+    el.style.filter = parseInt(el.dataset.rv)<=v ? 'none' : 'grayscale(1) opacity(.3)';
   });
 }
-
 async function submitRvComment() {
   const text = document.getElementById('rv-text').value.trim();
   if (!text) { alert('평가를 입력해주세요!'); return; }
-
   const btn = document.querySelector('.write-area button');
   btn.textContent = '등록 중...'; btn.disabled = true;
-
-  const body = JSON.stringify({ menu: rvCurrentMenu, star: rvStar, comment: text });
-  const token = await getToken();
-  try {
-    await fetch(GH_API, {
-      method: 'POST',
-      headers: {
-        Authorization: `token ${token}`,
-        Accept: 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        title: `[리뷰] ${rvCurrentMenu} ⭐${rvStar}`,
-        body,
-        labels: ['review']
-      })
-    });
-    rvIssuesCache = null; // 캐시 초기화
-    await openRvDetail(rvCurrentMenu);
-  } catch {
-    alert('등록 실패. 네트워크를 확인해주세요.');
-    btn.textContent = '등록하기'; btn.disabled = false;
-  }
+  const data = await fetchReviews();
+  if (!data.reviews) data.reviews = [];
+  data.reviews.push({ menu:rvCurrentMenu, star:rvStar, comment:text, date:new Date().toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'}) });
+  const ok = await saveReviews(data);
+  if (ok) { rvData=data; await openRvDetail(rvCurrentMenu); }
+  else { alert('등록 실패. 다시 시도해주세요.'); btn.textContent='등록하기'; btn.disabled=false; }
 }
 
 loadData();
