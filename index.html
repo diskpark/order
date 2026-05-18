@@ -409,20 +409,25 @@ let viewingHistory = null; // 히스토리 상세 조회 중인 항목
 
 // ── 데이터 로드 ──
 async function loadData() {
-  try {
-    const r = await fetch('./data.json');
-    if (!r.ok) throw new Error();
-    const raw = await r.json();
-    // restaurant_info 구조도 지원
-    if (raw.restaurant_info) {
-      raw.settings = {
-        sms_recipient:   raw.restaurant_info.mobile?.replace(/-/g,'') || '',
-        restaurant_phone:raw.restaurant_info.tel?.replace(/-/g,'')    || '',
-        restaurant_name: raw.restaurant_info.name || '식당'
-      };
-    }
-    appData = raw;
-  } catch {
+  const paths = ['./data.json', '/order/data.json', 'https://diskpark.github.io/order/data.json'];
+  for (const path of paths) {
+    try {
+      const r = await fetch(path);
+      if (!r.ok) continue;
+      const raw = await r.json();
+      if (raw.restaurant_info) {
+        raw.settings = {
+          sms_recipient:    raw.restaurant_info.mobile?.replace(/-/g,'') || '',
+          restaurant_phone: raw.restaurant_info.tel?.replace(/-/g,'')    || '',
+          restaurant_name:  raw.restaurant_info.name || '식당'
+        };
+      }
+      appData = raw;
+      break;
+    } catch { continue; }
+  }
+  // 메뉴에 id 없으면 자동 부여 (fallback 데이터 처리)
+  if (!appData.members.length) {
     appData = {
       settings:{ sms_recipient:'01020098442', restaurant_phone:'0614642008', restaurant_name:'억순이네' },
       members:[
@@ -439,15 +444,25 @@ async function loadData() {
         {id:5,name:"사골우거지",price:9000,category:"식사"},{id:6,name:"소머리국밥",price:9000,category:"식사"},
         {id:7,name:"소내장탕",price:9000,category:"식사"},{id:8,name:"김치찌개",price:9000,category:"식사"},
         {id:9,name:"순두부찌개",price:9000,category:"식사"},{id:10,name:"된장찌개",price:9000,category:"식사"},
-        {id:11,name:"계란말이",price:10000,category:"사이드"},{id:12,name:"순대",price:7000,category:"사이드"},
-        {id:13,name:"물냉면",price:7000,category:"사이드"},{id:14,name:"비빔냉면",price:8000,category:"사이드"},
-        {id:15,name:"라면",price:5000,category:"사이드"},{id:16,name:"계란찜",price:3000,category:"사이드"},
-        {id:17,name:"주먹밥",price:3000,category:"사이드"},{id:18,name:"볶음밥",price:2000,category:"사이드"},
-        {id:19,name:"공기밥",price:1000,category:"사이드"}
+        {id:11,name:"돼지곱창전골",price:22000,price_large:27000,category:"전골류"},
+        {id:12,name:"소곱창전골",price:27000,price_large:32000,category:"전골류"},
+        {id:13,name:"막창전골",price:27000,price_large:32000,category:"전골류"},
+        {id:14,name:"소불고기전골",price:22000,price_large:27000,category:"전골류"},
+        {id:15,name:"부대전골",price:22000,price_large:27000,category:"전골류"},
+        {id:16,name:"감자탕",price:27000,price_large:32000,category:"전골류"},
+        {id:17,name:"순대곱창볶음",price:22000,price_large:27000,category:"볶음류"},
+        {id:18,name:"야채곱창볶음",price:22000,price_large:27000,category:"볶음류"},
+        {id:19,name:"야채막창볶음",price:27000,price_large:32000,category:"볶음류"},
+        {id:20,name:"제육볶음",price:22000,price_large:27000,category:"볶음류"},
+        {id:21,name:"콩나물대패불고기",price:22000,price_large:27000,category:"볶음류"},
+        {id:22,name:"순대",price:7000,category:"사이드"},{id:23,name:"계란찜",price:3000,category:"사이드"},
+        {id:24,name:"계란말이",price:10000,category:"사이드"},{id:25,name:"라면",price:5000,category:"사이드"},
+        {id:26,name:"물냉면",price:7000,category:"사이드"},{id:27,name:"비빔냉면",price:8000,category:"사이드"},
+        {id:28,name:"주먹밥",price:3000,category:"사이드"},{id:29,name:"볶음밥",price:2000,category:"사이드"},
+        {id:30,name:"공기밥",price:1000,category:"사이드"},{id:31,name:"음료수",price:2000,category:"사이드"}
       ]
     };
   }
-  // 메뉴에 id 없으면 자동 부여
   appData.menu.forEach((m,i) => { if (!m.id) m.id = i+1; });
 
   const s = appData.settings || {};
@@ -1235,11 +1250,28 @@ async function fetchIssues() {
 
 async function renderRvMenuList() {
   const listEl = document.getElementById('rv-menu-list');
-  listEl.innerHTML = '<div class="text-white/30 text-sm text-center py-10">불러오는 중...</div>';
+  const token = getToken();
+  listEl.innerHTML = `<div style="color:rgba(255,255,255,0.3);font-size:12px;text-align:center;padding:20px 0;">
+    불러오는 중...<br><br>
+    <span style="font-size:10px;color:rgba(255,255,255,0.2);">
+      토큰: ${token ? '✅ 있음 ('+token.substring(0,10)+'...)' : '❌ 없음'}
+    </span>
+  </div>`;
   document.getElementById('rv-detail').classList.add('hidden');
   listEl.classList.remove('hidden');
 
   const issues = await fetchIssues();
+
+  // 오류 처리
+  if (!Array.isArray(issues)) {
+    listEl.innerHTML = `<div style="text-align:center;padding:30px 0;">
+      <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+      <div style="color:#f87171;font-size:14px;font-weight:700;margin-bottom:8px;">연결 오류 (${issues.error||''})</div>
+      <div style="color:rgba(255,255,255,0.4);font-size:12px;line-height:1.6;word-break:break-all;padding:0 10px;">${issues.msg||''}</div>
+      <button onclick="rvIssuesCache=null;renderRvMenuList()" style="margin-top:16px;padding:10px 24px;border-radius:14px;border:none;background:rgba(99,102,241,0.3);color:#a5b4fc;font-size:13px;font-weight:700;cursor:pointer;">다시 시도</button>
+    </div>`;
+    return;
+  }
 
   // 메뉴별 집계
   const stats = {};
