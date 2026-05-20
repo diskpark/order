@@ -717,6 +717,26 @@ function showGuide() {
 }
 
 
+// ── 스와이프 뒤로가기 ──
+(function() {
+  let startX = 0, startY = 0;
+  document.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = Math.abs(e.changedTouches[0].clientY - startY);
+    // 왼쪽에서 오른쪽으로 70px 이상, 세로 이동 적을 때
+    if (dx > 70 && dy < 60 && startX < 40) {
+      // 현재 보이는 step 감지
+      if (!document.getElementById('step4').classList.contains('hidden')) goBack(4);
+      else if (!document.getElementById('step3').classList.contains('hidden')) goBack(3);
+      else if (!document.getElementById('step2').classList.contains('hidden')) goBack(2);
+    }
+  }, {passive:true});
+})();
+
 // ── 유틸 ──
 function sortedWorkers() { return [...selectedWorkers].sort((a,b)=>a-b).map(id=>appData.members.find(m=>m.id===id)); }
 function goBack(step) {
