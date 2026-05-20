@@ -727,9 +727,12 @@ function showGuide() {
   document.addEventListener('touchend', e => {
     const dx = e.changedTouches[0].clientX - startX;
     const dy = Math.abs(e.changedTouches[0].clientY - startY);
-    // 왼쪽에서 오른쪽으로 70px 이상, 세로 이동 적을 때
-    if (dx > 70 && dy < 60 && startX < 40) {
-      // 현재 보이는 step 감지
+    // 크롬: 화면 왼쪽 80px 안에서 시작, 100px 이상 스와이프
+    // Safari: 40px 안에서 시작, 70px 이상
+    const isChrome = /Chrome/i.test(navigator.userAgent) && !/Safari/i.test(navigator.userAgent) || /CriOS/i.test(navigator.userAgent);
+    const minDx = isChrome ? 100 : 70;
+    const maxStartX = isChrome ? 80 : 40;
+    if (dx > minDx && dy < 80 && startX < maxStartX) {
       if (!document.getElementById('step4').classList.contains('hidden')) goBack(4);
       else if (!document.getElementById('step3').classList.contains('hidden')) goBack(3);
       else if (!document.getElementById('step2').classList.contains('hidden')) goBack(2);
